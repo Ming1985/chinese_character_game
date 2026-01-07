@@ -7,6 +7,8 @@ import { MonsterSprite, BossSprite, HeroSprite, DefeatedMark } from '../src/comp
 import { GameState, MonsterState, Character, GamePhase } from '../src/types';
 import { getCharactersByLevelId, getCharacterById } from '../src/data';
 import { saveAnswerResult, markLevelCompleted } from '../src/lib/database';
+import { getAudioService } from '../src/lib/audioService';
+import { SoundEffect } from '../src/lib/audioTypes';
 
 const MAX_MONSTERS = 8;
 const MONSTER_HP = 2;
@@ -102,9 +104,15 @@ export default function BattleScreen() {
         }
     }, [message]);
 
-    // 当字变化时重置计时器
+    // 当字变化时重置计时器并朗读拼音
     useEffect(() => {
         writeStartTime.current = Date.now();
+
+        // 朗读当前汉字的拼音
+        if (currentChar) {
+            const audio = getAudioService();
+            audio.speakPinyin(currentChar.pinyin).catch(console.error);
+        }
     }, [currentChar?.id]);
 
     // 处理书写完成
@@ -124,6 +132,7 @@ export default function BattleScreen() {
 
     // 小怪物阶段逻辑
     const handleMonsterPhase = (isCorrect: boolean) => {
+        const audio = getAudioService();
         const currentIdx = gameState.currentMonsterIndex;
         const monster = gameState.monsters[currentIdx];
 
@@ -131,6 +140,7 @@ export default function BattleScreen() {
             const newHp = monster.hp - 1;
             if (newHp <= 0) {
                 // 击败小怪物
+                audio.playSoundEffect(SoundEffect.MONSTER_DEFEAT);
                 setMessage(`击败「${monster.character.char}」怪!`);
                 const newMonsters = [...gameState.monsters];
                 newMonsters[currentIdx] = { ...monster, hp: 0, defeated: true };
@@ -162,6 +172,7 @@ export default function BattleScreen() {
                 }
             } else {
                 // 小怪物受伤但未死
+                audio.playSoundEffect(SoundEffect.HIT);
                 setMessage('命中! 再来一次!');
                 const newMonsters = [...gameState.monsters];
                 newMonsters[currentIdx] = { ...monster, hp: newHp };
@@ -169,6 +180,7 @@ export default function BattleScreen() {
             }
         } else {
             // 写错：怪物回满血
+            audio.playSoundEffect(SoundEffect.WRONG);
             setMessage('写错了! 怪物回血!');
             setAnswerChar(monster.character); // 保存当前字用于显示答案
             setShowAnswer(true);
@@ -210,10 +222,13 @@ export default function BattleScreen() {
 
     // Boss战阶段逻辑
     const handleBossPhase = (isCorrect: boolean) => {
+        const audio = getAudioService();
+
         if (isCorrect) {
             const newBossHp = gameState.bossHp - 1;
             if (newBossHp <= 0) {
                 // 击败Boss，胜利
+                audio.playSoundEffect(SoundEffect.VICTORY);
                 setMessage('Boss被击败! 关卡完成!');
                 setGameState(prev => ({ ...prev, phase: 'victory', bossHp: 0 }));
                 // 保存关卡完成状态（仅非复习模式）
@@ -222,6 +237,7 @@ export default function BattleScreen() {
                 }
             } else {
                 // Boss受伤，下一个字
+                audio.playSoundEffect(SoundEffect.BOSS_HURT);
                 setMessage(`命中Boss! 还剩${newBossHp}下!`);
                 const nextIdx = (gameState.bossCharIndex + 1) % gameState.bossCharacters.length;
                 setGameState(prev => ({
@@ -232,6 +248,7 @@ export default function BattleScreen() {
             }
         } else {
             // 写错：Boss回满血
+            audio.playSoundEffect(SoundEffect.WRONG);
             setMessage('写错了! Boss回满血!');
             setAnswerChar(gameState.bossCharacters[gameState.bossCharIndex]); // 保存当前字
             setShowAnswer(true);

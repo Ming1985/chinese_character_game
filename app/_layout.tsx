@@ -4,10 +4,21 @@ import { StyleSheet, View, Platform } from 'react-native';
 import { useEffect } from 'react';
 import { initOCRService } from '../src/lib/ocrService';
 import { OCR_CONFIG } from '../src/config/ocr';
+import { initAudioService, getAudioService } from '../src/lib/audioService';
 
 export default function RootLayout() {
     useEffect(() => {
+        // 初始化 OCR 服务
         initOCRService(OCR_CONFIG);
+
+        // 初始化音频服务
+        initAudioService();
+        getAudioService().initialize().catch(console.error);
+
+        // 清理音频资源
+        return () => {
+            getAudioService().cleanup().catch(console.error);
+        };
     }, []);
 
     return (
