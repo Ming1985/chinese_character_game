@@ -1,10 +1,28 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { getReviewCount, getCharactersDueForReview } from '../src/lib/database';
 
 export default function ReviewScreen() {
-    // TODO: 从数据库读取需要复习的字
-    const reviewCount = 0;
+    const [reviewCount, setReviewCount] = useState(0);
+    const [reviewCharIds, setReviewCharIds] = useState<string[]>([]);
+
+    // 每次页面获得焦点时刷新
+    useFocusEffect(
+        useCallback(() => {
+            getReviewCount().then(setReviewCount).catch(console.error);
+            getCharactersDueForReview(20).then(setReviewCharIds).catch(console.error);
+        }, [])
+    );
+
+    const handleStartReview = () => {
+        if (reviewCharIds.length > 0) {
+            // 传递复习字ID列表到战斗页面
+            router.push({ pathname: '/battle', params: { reviewMode: 'true', charIds: reviewCharIds.join(',') } });
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -22,7 +40,7 @@ export default function ReviewScreen() {
                         <Text style={styles.countNumber}>{reviewCount}</Text>
                         <Text style={styles.countUnit}>个汉字</Text>
 
-                        <TouchableOpacity style={styles.startButton}>
+                        <TouchableOpacity style={styles.startButton} onPress={handleStartReview}>
                             <Text style={styles.startButtonText}>开始复习</Text>
                         </TouchableOpacity>
                     </>

@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { Link, useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import WritingPad from '../src/components/WritingPad';
 import { MonsterSprite, BossSprite, HeroSprite, DefeatedMark } from '../src/components/GameSprites';
 import { GameState, MonsterState, Character, GamePhase } from '../src/types';
-import { getCharactersByLevelId } from '../src/data';
+import { getCharactersByLevelId, getCharacterById } from '../src/data';
+import { saveAnswerResult, markLevelCompleted } from '../src/lib/database';
 
 const MAX_MONSTERS = 8;
 const MONSTER_HP = 2;
@@ -29,14 +30,30 @@ function getResponsiveSizes(screenWidth: number) {
 }
 
 export default function BattleScreen() {
-    const { levelId } = useLocalSearchParams<{ levelId: string }>();
+    const { levelId, reviewMode, charIds } = useLocalSearchParams<{
+        levelId?: string;
+        reviewMode?: string;
+        charIds?: string;
+    }>();
     const { width: screenWidth } = useWindowDimensions();
     const sizes = getResponsiveSizes(screenWidth);
+    const isReviewMode = reviewMode === 'true';
 
-    // 获取关卡数据
-    const allCharacters = levelId ? getCharactersByLevelId(levelId) : [];
-    // 限制最多8个小怪物
-    const levelCharacters = allCharacters.slice(0, MAX_MONSTERS);
+    // 获取关卡或复习数据
+    const levelCharacters = useMemo(() => {
+        if (isReviewMode && charIds) {
+            // 复习模式：根据字ID列表获取字
+            const ids = charIds.split(',');
+            return ids
+                .map(id => getCharacterById(id))
+                .filter((c): c is Character => c !== undefined)
+                .slice(0, MAX_MONSTERS);
+        } else if (levelId) {
+            // 关卡模式
+            return getCharactersByLevelId(levelId).slice(0, MAX_MONSTERS);
+        }
+        return [];
+    }, [levelId, isReviewMode, charIds]);
 
     // 初始化游戏状态
     const [gameState, setGameState] = useState<GameState>(() => initGameState(levelCharacters));
@@ -44,6 +61,9 @@ export default function BattleScreen() {
     const [answerChar, setAnswerChar] = useState<Character | null>(null); // 用于显示答案的字
     const [showHint, setShowHint] = useState(false);
     const [message, setMessage] = useState<string>('');
+
+    // 计时器：记录开始书写的时间
+    const writeStartTime = useRef<number>(Date.now());
 
     // 当前要写的字
     const currentChar = useMemo(() => {
@@ -82,14 +102,25 @@ export default function BattleScreen() {
         }
     }, [message]);
 
+    // 当字变化时重置计时器
+    useEffect(() => {
+        writeStartTime.current = Date.now();
+    }, [currentChar?.id]);
+
     // 处理书写完成
     const handleWritingComplete = useCallback((recognizedChar: string, isCorrect: boolean) => {
+        // 计算响应时间并保存到数据库
+        const responseTime = Date.now() - writeStartTime.current;
+        if (currentChar) {
+            saveAnswerResult(currentChar.id, isCorrect, responseTime).catch(console.error);
+        }
+
         if (gameState.phase === 'monster') {
             handleMonsterPhase(isCorrect);
         } else if (gameState.phase === 'boss') {
             handleBossPhase(isCorrect);
         }
-    }, [gameState]);
+    }, [gameState, currentChar]);
 
     // 小怪物阶段逻辑
     const handleMonsterPhase = (isCorrect: boolean) => {
@@ -185,6 +216,10 @@ export default function BattleScreen() {
                 // 击败Boss，胜利
                 setMessage('Boss被击败! 关卡完成!');
                 setGameState(prev => ({ ...prev, phase: 'victory', bossHp: 0 }));
+                // 保存关卡完成状态（仅非复习模式）
+                if (levelId && !isReviewMode) {
+                    markLevelCompleted(levelId, 3).catch(console.error);
+                }
             } else {
                 // Boss受伤，下一个字
                 setMessage(`命中Boss! 还剩${newBossHp}下!`);
@@ -241,13 +276,17 @@ export default function BattleScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.endScreen}>
-                    <Text style={styles.victoryText}>恭喜过关!</Text>
+                    <Text style={styles.victoryText}>
+                        {isReviewMode ? '复习完成!' : '恭喜过关!'}
+                    </Text>
                     <Text style={styles.victoryEmoji}>🎉</Text>
                     <TouchableOpacity
                         style={styles.returnButton}
-                        onPress={() => router.replace('/levels')}
+                        onPress={() => router.replace(isReviewMode ? '/review' : '/levels')}
                     >
-                        <Text style={styles.returnButtonText}>返回关卡</Text>
+                        <Text style={styles.returnButtonText}>
+                            {isReviewMode ? '返回复习' : '返回关卡'}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -284,7 +323,7 @@ export default function BattleScreen() {
                     <Text style={styles.backText}>← 退出</Text>
                 </TouchableOpacity>
                 <Text style={styles.phaseText}>
-                    {gameState.phase === 'monster' ? '小怪物战' : 'Boss战'}
+                    {isReviewMode ? '复习模式' : (gameState.phase === 'monster' ? '小怪物战' : 'Boss战')}
                 </Text>
             </View>
 

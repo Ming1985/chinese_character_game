@@ -1,14 +1,25 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { TEXTBOOKS, getLevelsByTextbook, getCharactersByLevelId } from '../src/data';
+import { getCompletedLevelIds } from '../src/lib/database';
 
 export default function LevelsScreen() {
     const { textbookId } = useLocalSearchParams<{ textbookId: string }>();
+    const [completedLevelIds, setCompletedLevelIds] = useState<string[]>([]);
 
     // 获取课本信息
     const textbook = TEXTBOOKS.find(t => t.id === textbookId);
     const levels = textbookId ? getLevelsByTextbook(textbookId) : [];
+
+    // 加载已完成的关卡（每次页面获得焦点时刷新）
+    useFocusEffect(
+        useCallback(() => {
+            getCompletedLevelIds().then(setCompletedLevelIds).catch(console.error);
+        }, [])
+    );
 
     const handleStartBattle = (levelId: string) => {
         router.push({ pathname: '/battle', params: { levelId } });
@@ -48,8 +59,10 @@ export default function LevelsScreen() {
             <ScrollView style={styles.levelList} contentContainerStyle={styles.levelListContent}>
                 {levels.map((level, index) => {
                     const chars = getCharactersByLevelId(level.id);
-                    const isUnlocked = index === 0 || true; // 暂时全部解锁
-                    const isCompleted = false; // 暂时没有完成状态
+                    const isCompleted = completedLevelIds.includes(level.id);
+                    // 第一关默认解锁，或前一关已完成
+                    const prevLevelId = index > 0 ? levels[index - 1].id : null;
+                    const isUnlocked = index === 0 || (prevLevelId && completedLevelIds.includes(prevLevelId));
 
                     return (
                         <View

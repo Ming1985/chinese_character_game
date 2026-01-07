@@ -1,7 +1,19 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Link } from 'expo-router';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { getTodayPracticeCount } from '../src/lib/database';
 
 export default function HomeScreen() {
+    const [todayCount, setTodayCount] = useState(0);
+
+    // 每次页面获得焦点时刷新
+    useFocusEffect(
+        useCallback(() => {
+            getTodayPracticeCount().then(setTodayCount).catch(console.error);
+        }, [])
+    );
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -30,7 +42,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.footer}>
-                <Text style={styles.footerText}>今日已练习: 0 字</Text>
+                <Text style={styles.footerText}>今日已练习: {todayCount} 字</Text>
             </View>
         </View>
     );
