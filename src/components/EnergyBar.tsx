@@ -52,16 +52,16 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
     },
     barContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        marginRight: 8,
     },
     label: {
         color: '#888',
         fontSize: 12,
+        marginLeft: 8,
     },
     barBackground: {
         width: 120,

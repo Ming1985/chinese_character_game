@@ -137,13 +137,13 @@ const styles = StyleSheet.create({
         right: 100,
         flexDirection: 'row',
         justifyContent: 'center',
-        gap: 8,
     },
     distanceStep: {
         width: 30,
         height: 6,
         backgroundColor: '#27ae60',
         borderRadius: 3,
+        marginHorizontal: 4,
     },
     distanceStepDanger: {
         backgroundColor: '#e94560',

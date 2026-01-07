@@ -22,10 +22,8 @@ export default function LevelsScreen() {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.header}>
-                    <Link href="/textbooks" asChild>
-                        <TouchableOpacity style={styles.backButton}>
-                            <Text style={styles.backButtonText}>← 返回</Text>
-                        </TouchableOpacity>
+                    <Link href="/textbooks" style={styles.backButton}>
+                        <Text style={styles.backButtonText}>← 返回</Text>
                     </Link>
                     <Text style={styles.title}>选择课程</Text>
                 </View>
@@ -140,7 +138,6 @@ const styles = StyleSheet.create({
     },
     levelListContent: {
         padding: 16,
-        gap: 12,
     },
     levelCard: {
         backgroundColor: '#16213e',
@@ -151,6 +148,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         borderWidth: 2,
         borderColor: '#0f3460',
+        marginBottom: 12,
     },
     levelCardLocked: {
         opacity: 0.5,
@@ -181,13 +179,13 @@ const styles = StyleSheet.create({
     },
     levelActions: {
         flexDirection: 'row',
-        gap: 8,
     },
     previewButton: {
         backgroundColor: '#0f3460',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 8,
+        marginRight: 8,
     },
     previewButtonText: {
         color: '#aaa',

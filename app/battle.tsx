@@ -499,13 +499,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 8,
-        gap: 8,
     },
     bossLabel: {
         color: '#e74c3c',
         fontSize: 14,
         fontWeight: 'bold',
         width: 50,
+        marginRight: 8,
     },
     hpBarBg: {
         flex: 1,
@@ -523,6 +523,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         width: 40,
         textAlign: 'right',
+        marginLeft: 8,
     },
     battleScene: {
         flexDirection: 'row',
@@ -553,7 +554,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        gap: 6,
         alignSelf: 'center',
     },
     monsterCard: {
@@ -563,6 +563,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 2,
         borderColor: '#0f3460',
+        margin: 3,
     },
     monsterActive: {
         borderColor: '#f39c12',
@@ -574,13 +575,13 @@ const styles = StyleSheet.create({
     },
     monsterHpBar: {
         flexDirection: 'row',
-        gap: 2,
         marginTop: 4,
     },
     hpDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
+        marginHorizontal: 1,
     },
     hpDotFull: {
         backgroundColor: '#e74c3c',
@@ -592,24 +593,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 12,
         paddingVertical: 8,
     },
     currentMonsterLabel: {
         color: '#888',
         fontSize: 14,
+        marginRight: 12,
     },
     currentMonsterHp: {
         flexDirection: 'row',
-        gap: 4,
     },
     heartFull: {
         fontSize: 20,
         opacity: 1,
+        marginHorizontal: 2,
     },
     heartEmpty: {
         fontSize: 20,
         opacity: 0.3,
+        marginHorizontal: 2,
     },
     bossInfo: {
         alignItems: 'center',
@@ -706,26 +708,29 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 20,
     },
     victoryText: {
         fontSize: 36,
         color: '#27ae60',
         fontWeight: 'bold',
+        marginBottom: 20,
     },
     victoryEmoji: {
         fontSize: 80,
+        marginBottom: 20,
     },
     defeatText: {
         fontSize: 36,
         color: '#e74c3c',
         fontWeight: 'bold',
+        marginBottom: 20,
     },
     retryButton: {
         backgroundColor: '#e74c3c',
         paddingVertical: 16,
         paddingHorizontal: 32,
         borderRadius: 8,
+        marginBottom: 20,
     },
     retryButtonText: {
         color: '#fff',

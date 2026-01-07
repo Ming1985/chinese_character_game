@@ -9,10 +9,8 @@ export default function ReviewScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Link href="/" asChild>
-                    <TouchableOpacity style={styles.backButton}>
-                        <Text style={styles.backButtonText}>← 返回</Text>
-                    </TouchableOpacity>
+                <Link href="/" style={styles.backButton}>
+                    <Text style={styles.backButtonText}>← 返回</Text>
                 </Link>
                 <Text style={styles.title}>每日复习</Text>
             </View>

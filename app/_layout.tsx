@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { useEffect } from 'react';
 import { initOCRService } from '../src/lib/ocrService';
 import { OCR_CONFIG } from '../src/config/ocr';
@@ -9,9 +9,10 @@ export default function RootLayout() {
     useEffect(() => {
         initOCRService(OCR_CONFIG);
     }, []);
+
     return (
         <View style={styles.container}>
-            <StatusBar style="light" />
+            {Platform.OS !== 'web' && <StatusBar style="light" />}
             <Stack
                 screenOptions={{
                     headerShown: false,
@@ -19,6 +20,7 @@ export default function RootLayout() {
                 }}
             >
                 <Stack.Screen name="index" />
+                <Stack.Screen name="textbooks" />
                 <Stack.Screen name="levels" />
                 <Stack.Screen name="characters" />
                 <Stack.Screen name="battle" />
@@ -31,5 +33,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#1a1a2e',
     },
 });

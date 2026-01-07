@@ -1,33 +1,27 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>汉字小勇士</Text>
                 <Text style={styles.subtitle}>书写汉字，击败怪兽</Text>
             </View>
 
             <View style={styles.mascot}>
-                {/* 占位：小龙角色图片 */}
                 <View style={styles.mascotPlaceholder}>
                     <Text style={styles.mascotEmoji}>🐲</Text>
                 </View>
             </View>
 
             <View style={styles.menu}>
-                <Link href="/textbooks" asChild>
-                    <TouchableOpacity style={styles.menuButton}>
-                        <Text style={styles.menuButtonText}>开始冒险</Text>
-                    </TouchableOpacity>
+                <Link href="/textbooks" style={styles.menuButton}>
+                    <Text style={styles.menuButtonText}>开始冒险</Text>
                 </Link>
 
-                <Link href="/review" asChild>
-                    <TouchableOpacity style={[styles.menuButton, styles.menuButtonSecondary]}>
-                        <Text style={styles.menuButtonText}>每日复习</Text>
-                    </TouchableOpacity>
+                <Link href="/review" style={[styles.menuButton, styles.menuButtonSecondary]}>
+                    <Text style={styles.menuButtonText}>每日复习</Text>
                 </Link>
 
                 <TouchableOpacity style={[styles.menuButton, styles.menuButtonTertiary]}>
@@ -38,7 +32,7 @@ export default function HomeScreen() {
             <View style={styles.footer}>
                 <Text style={styles.footerText}>今日已练习: 0 字</Text>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -56,9 +50,6 @@ const styles = StyleSheet.create({
         fontSize: 42,
         fontWeight: 'bold',
         color: '#eee',
-        textShadowColor: '#f39c12',
-        textShadowOffset: { width: 2, height: 2 },
-        textShadowRadius: 4,
     },
     subtitle: {
         fontSize: 16,
@@ -84,19 +75,14 @@ const styles = StyleSheet.create({
         fontSize: 100,
     },
     menu: {
-        gap: 16,
         marginBottom: 40,
     },
     menuButton: {
+        marginTop: 16,
         backgroundColor: '#e94560',
         paddingVertical: 18,
         borderRadius: 12,
         alignItems: 'center',
-        shadowColor: '#e94560',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
     },
     menuButtonSecondary: {
         backgroundColor: '#0f3460',

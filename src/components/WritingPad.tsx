@@ -274,7 +274,6 @@ const styles = StyleSheet.create({
     },
     buttonRow: {
         flexDirection: 'row',
-        gap: 16,
         marginTop: 16,
         marginBottom: 8,
     },
@@ -283,6 +282,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 32,
         borderRadius: 8,
+        marginRight: 16,
     },
     submitButton: {
         backgroundColor: '#27ae60',

@@ -15,10 +15,8 @@ export default function TextbooksScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Link href="/" asChild>
-                    <TouchableOpacity style={styles.backButton}>
-                        <Text style={styles.backButtonText}>← 返回</Text>
-                    </TouchableOpacity>
+                <Link href="/" style={styles.backButton}>
+                    <Text style={styles.backButtonText}>← 返回</Text>
                 </Link>
                 <Text style={styles.title}>选择课本</Text>
             </View>
@@ -129,10 +127,11 @@ const styles = StyleSheet.create({
     bookGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 16,
     },
     bookCard: {
         width: '47%',
+        marginRight: 8,
+        marginBottom: 16,
         backgroundColor: '#16213e',
         borderRadius: 12,
         padding: 12,

@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
     },
     listContent: {
         padding: 16,
-        gap: 12,
     },
     card: {
         backgroundColor: '#16213e',
@@ -102,16 +101,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#0f3460',
+        marginBottom: 12,
     },
     cardLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
     },
     index: {
         color: '#666',
         fontSize: 14,
         width: 20,
+        marginRight: 12,
     },
     char: {
         fontSize: 40,
