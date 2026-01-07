@@ -35,6 +35,9 @@ src/
     grade1-down.ts     # 一年级下册
     grade2-up.ts       # 二年级上册（写字表 250 字）
     grade2-down.ts     # 二年级下册
+  lib/                 # 服务层
+    database.ts        # SQLite 数据库（expo-sqlite）
+    ocrService.ts      # OCR 服务
   types/               # TypeScript 类型
     index.ts           # Character, Level, Textbook 等
 ```
@@ -120,13 +123,14 @@ const BAIDU_SECRET_KEY = '...';
 - [x] 田字格书写 + OCR 识别
 - [x] 战斗系统（怪物 + Boss）
 - [x] 响应式布局
-- [x] 二年级上册完整字库（写字表）
+- [x] 1-2年级完整字库（写字表）
+- [x] Web 兼容性
+- [x] 数据持久化（expo-sqlite）
+- [x] 间隔重复复习
 
 待实现：
-- [ ] 其他年级写字表数据
-- [ ] 数据持久化（学习进度）
+- [ ] 其他年级写字表数据（3-6年级）
 - [ ] 语音提示
-- [ ] 间隔重复复习
 
 ## npm 镜像
 
