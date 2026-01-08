@@ -3,14 +3,14 @@ import { Platform } from 'react-native';
 import { SoundEffect, BackgroundMusic, AudioConfig, SoundAsset } from './audioTypes';
 import { OCR_CONFIG } from '../config/ocr';
 
-// 音频资源映射（占位路径，等待音效文件下载后更新）
+// 音频资源映射
 const SOUND_ASSETS: SoundAsset[] = [
-  // { key: SoundEffect.CORRECT, path: require('../../assets/sounds/effects/correct.mp3'), type: 'effect' },
-  // { key: SoundEffect.WRONG, path: require('../../assets/sounds/effects/wrong.mp3'), type: 'effect' },
-  // { key: SoundEffect.HIT, path: require('../../assets/sounds/effects/hit.mp3'), type: 'effect' },
-  // { key: SoundEffect.MONSTER_DEFEAT, path: require('../../assets/sounds/effects/defeat.mp3'), type: 'effect' },
-  // { key: SoundEffect.BOSS_HURT, path: require('../../assets/sounds/effects/boss-hurt.mp3'), type: 'effect' },
-  // { key: SoundEffect.VICTORY, path: require('../../assets/sounds/effects/victory.mp3'), type: 'effect' },
+  { key: SoundEffect.CORRECT, path: require('../../assets/sounds/effects/correct.wav'), type: 'effect' },
+  { key: SoundEffect.WRONG, path: require('../../assets/sounds/effects/wrong.wav'), type: 'effect' },
+  { key: SoundEffect.HIT, path: require('../../assets/sounds/effects/hit.wav'), type: 'effect' },
+  { key: SoundEffect.MONSTER_DEFEAT, path: require('../../assets/sounds/effects/defeat.wav'), type: 'effect' },
+  { key: SoundEffect.BOSS_HURT, path: require('../../assets/sounds/effects/boss-hurt.mp3'), type: 'effect' },
+  { key: SoundEffect.VICTORY, path: require('../../assets/sounds/effects/victory.wav'), type: 'effect' },
 ];
 
 // 百度 TTS API 配置
