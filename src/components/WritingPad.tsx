@@ -1,14 +1,20 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useState, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, PanResponder, GestureResponderEvent, ActivityIndicator, useWindowDimensions } from 'react-native';
 import Svg, { Path as SvgPath, Line, Rect } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
 import { StrokePoint } from '../types';
 import { getOCRService } from '../lib/ocrService';
 
+export interface WritingPadRef {
+    clear: () => void;
+    submit: () => void;
+}
+
 interface WritingPadProps {
     targetChar: string;
     onComplete: (recognizedChar: string, isCorrect: boolean) => void;
     disabled?: boolean;
+    hideButtons?: boolean;
 }
 
 const STROKE_WIDTH = 6;
@@ -20,7 +26,7 @@ function getPadSize(screenWidth: number): number {
     return 260; // iPhone
 }
 
-export default function WritingPad({ targetChar, onComplete, disabled }: WritingPadProps) {
+const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onComplete, disabled, hideButtons = false }, ref) => {
     const { width: screenWidth } = useWindowDimensions();
     const PAD_SIZE = getPadSize(screenWidth);
 
@@ -78,7 +84,13 @@ export default function WritingPad({ targetChar, onComplete, disabled }: Writing
             setIsRecognizing(false);
             handleClear();
         }
-    }, [paths, targetChar, onComplete, handleClear, isRecognizing]);
+    }, [paths, targetChar, onComplete, handleClear, isRecognizing, PAD_SIZE]);
+
+    // 暴露方法给父组件
+    useImperativeHandle(ref, () => ({
+        clear: handleClear,
+        submit: handleSubmit
+    }));
 
     const panResponder = useMemo(() => PanResponder.create({
         onStartShouldSetPanResponder: () => !disabled && !isRecognizing,
@@ -131,7 +143,7 @@ export default function WritingPad({ targetChar, onComplete, disabled }: Writing
         canvasWrapper: {
             width: PAD_SIZE,
             height: PAD_SIZE,
-            backgroundColor: '#0a0a15',
+            backgroundColor: '#2d4538', // 深林绿色，贴近丛林主题
             position: 'relative' as const,
         },
         captureView: {
@@ -150,7 +162,7 @@ export default function WritingPad({ targetChar, onComplete, disabled }: Writing
             width: PAD_SIZE,
             height: PAD_SIZE,
             zIndex: 2,
-            backgroundColor: '#0a0a15',
+            backgroundColor: '#2d4538', // 与 canvasWrapper 一致
         },
     };
 
@@ -195,13 +207,13 @@ export default function WritingPad({ targetChar, onComplete, disabled }: Writing
                         <Svg width={PAD_SIZE} height={PAD_SIZE}>
                             {/* 田字格线 */}
                             <Line x1={PAD_SIZE / 2} y1={0} x2={PAD_SIZE / 2} y2={PAD_SIZE}
-                                  stroke="#333" strokeWidth={1} strokeDasharray="8,4" />
+                                stroke="#333" strokeWidth={1} strokeDasharray="8,4" />
                             <Line x1={0} y1={PAD_SIZE / 2} x2={PAD_SIZE} y2={PAD_SIZE / 2}
-                                  stroke="#333" strokeWidth={1} strokeDasharray="8,4" />
+                                stroke="#333" strokeWidth={1} strokeDasharray="8,4" />
                             <Line x1={0} y1={0} x2={PAD_SIZE} y2={PAD_SIZE}
-                                  stroke="#222" strokeWidth={1} strokeDasharray="8,4" />
+                                stroke="#222" strokeWidth={1} strokeDasharray="8,4" />
                             <Line x1={PAD_SIZE} y1={0} x2={0} y2={PAD_SIZE}
-                                  stroke="#222" strokeWidth={1} strokeDasharray="8,4" />
+                                stroke="#222" strokeWidth={1} strokeDasharray="8,4" />
 
                             {/* 显示笔画 */}
                             {paths.map((pathStr, index) => (
@@ -231,32 +243,36 @@ export default function WritingPad({ targetChar, onComplete, disabled }: Writing
                 <View style={styles.gridBorder} pointerEvents="none" />
             </View>
 
-            <View style={styles.buttonRow}>
-                <TouchableOpacity
-                    style={styles.clearButton}
-                    onPress={handleClear}
-                    disabled={isRecognizing}
-                >
-                    <Text style={styles.buttonText}>清除</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[
-                        styles.submitButton,
-                        (disabled || paths.length === 0 || isRecognizing) && styles.buttonDisabled
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={disabled || paths.length === 0 || isRecognizing}
-                >
-                    {isRecognizing ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                        <Text style={styles.submitButtonText}>确定</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
+            {!hideButtons && (
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity
+                        style={styles.clearButton}
+                        onPress={handleClear}
+                        disabled={isRecognizing}
+                    >
+                        <Text style={styles.buttonText}>清除</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.submitButton,
+                            (disabled || paths.length === 0 || isRecognizing) && styles.buttonDisabled
+                        ]}
+                        onPress={handleSubmit}
+                        disabled={disabled || paths.length === 0 || isRecognizing}
+                    >
+                        {isRecognizing ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                        ) : (
+                            <Text style={styles.submitButtonText}>确定</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
-}
+});
+
+export default WritingPad;
 
 const styles = StyleSheet.create({
     container: {

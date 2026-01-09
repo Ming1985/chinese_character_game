@@ -1,0 +1,58 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - 导航流程测试
+# 测试主页 -> 课本选择 -> 关卡选择 的完整导航流程
+
+# 启动应用后等待加载
+- launchApp
+
+# 等待首页加载完成
+- assertVisible: "汉字小勇士"
+- assertVisible: "书写汉字，击败怪兽"
+
+# 截图：首页
+- takeScreenshot: "01_home_screen"
+
+# 测试1: 检查首页元素
+- assertVisible: "开始冒险"
+- assertVisible: "每日复习"
+- assertVisible: "学习报告"
+
+# 测试2: 点击"开始冒险"进入课本选择
+- tapOn: "开始冒险"
+
+# 等待课本选择页加载
+- assertVisible: "选择课本"
+- assertVisible: "一年级"
+- assertVisible: "二年级"
+
+# 截图：课本选择页
+- takeScreenshot: "02_textbook_screen"
+
+# 测试3: 选择二年级上册
+- tapOn: "二年级上册"
+
+# 等待关卡列表加载
+- assertVisible: "课文1 小蝌蚪找妈妈"
+
+# 截图：关卡选择页
+- takeScreenshot: "03_levels_screen"
+
+# 测试4: 检查关卡卡片元素
+- assertVisible: "预览"
+- assertVisible: "闯关"
+
+# 测试5: 返回上一级
+- tapOn: "← 返回"
+- assertVisible: "选择课本"
+
+# 再次返回首页
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+# 测试6: 测试设置页面
+- tapOn: "⚙️"
+- assertVisible: "设置"  # 假设设置页有这个标题
+
+# 截图：设置页
+- takeScreenshot: "04_settings_screen"

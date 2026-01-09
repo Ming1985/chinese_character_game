@@ -1,0 +1,90 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - 战斗界面布局验证测试
+# 优化: 依赖自动旋转 (app.json orientation: default)
+
+# 启动 Expo Go - 不清除状态以避免错误
+- launchApp:
+    clearState: false
+
+# 等待 Expo Go 加载完成 - 增加等待时间
+- extendedWaitUntil:
+    visible: "Recently opened"
+    timeout: 30000
+
+# 尝试点击"汉字小勇士"
+- tapOn:
+    text: "汉字小勇士"
+    index: 0
+    optional: true
+
+# 备选: 使用坐标点击第一个项目 (适用于iPad横屏)
+# 假设已经物理旋转为横屏，且 app.json 允许旋转
+- runFlow:
+    when:
+      notVisible: "开始冒险"
+    commands:
+      # 截图以帮助调试
+      - takeScreenshot: "00_debug_launch_failed"
+      - tapOn:
+          point: "30%,25%"
+
+# 等待应用首页加载
+- extendedWaitUntil:
+    visible: "开始冒险"
+    timeout: 30000
+
+- takeScreenshot: "01_home_landscape"
+
+# 点击"开始冒险"
+- tapOn:
+    text: "开始冒险"
+
+# 等待课本选择页
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 15000
+
+- takeScreenshot: "02_textbooks"
+
+# 点击第一个课本卡片
+- tapOn:
+    point: "20%,40%"
+
+# 等待关卡列表
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 15000
+
+- takeScreenshot: "03_levels"
+
+# 点击闯关进入战斗
+- tapOn:
+    text: "闯关"
+    index: 0
+
+# 等待战斗界面加载
+- extendedWaitUntil:
+    timeout: 20000
+    visible: ".*"
+
+# 等待动画稳定
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- takeScreenshot: "04_battle"
+
+# ========== 核心布局验证 ==========
+
+# 检测清除按钮
+- assertVisible:
+    text: "清除"
+    label: "CRITICAL: Clear button must be visible in landscape mode"
+
+# 检测确定按钮
+- assertVisible:
+    text: "确定"
+    label: "CRITICAL: Submit button must be visible in landscape mode"
+
+- takeScreenshot: "05_layout_passed"

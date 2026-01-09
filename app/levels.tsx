@@ -57,27 +57,23 @@ export default function LevelsScreen() {
             </View>
 
             <ScrollView style={styles.levelList} contentContainerStyle={styles.levelListContent}>
-                {levels.map((level, index) => {
+                {levels.map((level) => {
                     const chars = getCharactersByLevelId(level.id);
                     const isCompleted = completedLevelIds.includes(level.id);
-                    // 第一关默认解锁，或前一关已完成
-                    const prevLevelId = index > 0 ? levels[index - 1].id : null;
-                    const isUnlocked = index === 0 || (prevLevelId && completedLevelIds.includes(prevLevelId));
 
                     return (
                         <View
                             key={level.id}
                             style={[
                                 styles.levelCard,
-                                !isUnlocked && styles.levelCardLocked,
                                 isCompleted && styles.levelCardCompleted,
                             ]}
                         >
                             <View style={styles.levelInfo}>
-                                <Text style={[styles.levelName, !isUnlocked && styles.textLocked]}>
+                                <Text style={styles.levelName}>
                                     {level.name}
                                 </Text>
-                                <Text style={[styles.levelDetail, !isUnlocked && styles.textLocked]}>
+                                <Text style={styles.levelDetail}>
                                     {chars.length}个生字
                                 </Text>
                                 <Text style={styles.charPreview} numberOfLines={1}>
@@ -93,13 +89,16 @@ export default function LevelsScreen() {
                                     <Text style={styles.previewButtonText}>预览</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.playButton, !isUnlocked && styles.buttonDisabled]}
+                                    style={styles.playButton}
                                     onPress={() => handleStartBattle(level.id)}
-                                    disabled={!isUnlocked}
                                 >
-                                    <Text style={styles.playButtonText}>
-                                        {isUnlocked ? '闯关' : '🔒'}
-                                    </Text>
+                                    <Text style={styles.playButtonText}>闯关</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.v2Button}
+                                    onPress={() => router.push({ pathname: '/battle-v2', params: { levelId: level.id } })}
+                                >
+                                    <Text style={styles.v2ButtonText}>V2</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -163,9 +162,6 @@ const styles = StyleSheet.create({
         borderColor: '#0f3460',
         marginBottom: 12,
     },
-    levelCardLocked: {
-        opacity: 0.5,
-    },
     levelCardCompleted: {
         borderColor: '#27ae60',
     },
@@ -186,9 +182,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#f39c12',
         marginTop: 8,
-    },
-    textLocked: {
-        color: '#555',
     },
     levelActions: {
         flexDirection: 'row',
@@ -215,7 +208,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    buttonDisabled: {
-        backgroundColor: '#333',
+    v2Button: {
+        backgroundColor: '#e94560',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginLeft: 8,
+    },
+    v2ButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
     },
 });

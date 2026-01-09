@@ -36,6 +36,7 @@ export default function RootLayout() {
                 <Stack.Screen name="characters" />
                 <Stack.Screen name="battle" />
                 <Stack.Screen name="review" />
+                <Stack.Screen name="settings" />
             </Stack>
         </View>
     );

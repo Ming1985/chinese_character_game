@@ -104,14 +104,17 @@ export default function BattleScreen() {
         }
     }, [message]);
 
-    // 当字变化时重置计时器并朗读拼音
+    // 当字变化时重置计时器并延迟朗读汉字
     useEffect(() => {
         writeStartTime.current = Date.now();
 
-        // 朗读当前汉字的拼音
+        // 延迟 300ms 朗读当前汉字，让用户先看清题目
         if (currentChar) {
-            const audio = getAudioService();
-            audio.speakPinyin(currentChar.pinyin).catch(console.error);
+            const timer = setTimeout(() => {
+                const audio = getAudioService();
+                audio.speakText(currentChar.char).catch(console.error);  // 朗读汉字本身
+            }, 300);
+            return () => clearTimeout(timer);
         }
     }, [currentChar?.id]);
 
@@ -184,6 +187,10 @@ export default function BattleScreen() {
             setMessage('写错了! 怪物回血!');
             setAnswerChar(monster.character); // 保存当前字用于显示答案
             setShowAnswer(true);
+            // 延迟朗读正确答案，让错误音效先播放完
+            setTimeout(() => {
+                audio.speakText(monster.character.char).catch(console.error);
+            }, 600);
             const newMonsters = [...gameState.monsters];
             newMonsters[currentIdx] = {
                 ...monster,
@@ -250,8 +257,13 @@ export default function BattleScreen() {
             // 写错：Boss回满血
             audio.playSoundEffect(SoundEffect.WRONG);
             setMessage('写错了! Boss回满血!');
-            setAnswerChar(gameState.bossCharacters[gameState.bossCharIndex]); // 保存当前字
+            const wrongChar = gameState.bossCharacters[gameState.bossCharIndex];
+            setAnswerChar(wrongChar); // 保存当前字
             setShowAnswer(true);
+            // 延迟朗读正确答案
+            setTimeout(() => {
+                audio.speakText(wrongChar.char).catch(console.error);
+            }, 600);
             // 重新随机一个字
             const nextIdx = (gameState.bossCharIndex + 1) % gameState.bossCharacters.length;
             setGameState(prev => ({
@@ -447,17 +459,34 @@ export default function BattleScreen() {
             <View style={styles.hintArea}>
                 {currentChar && (
                     <>
-                        {/* 显示词语，用拼音替代要写的字，如"早chén" */}
-                        <Text style={[styles.hintText, { fontSize: sizes.fontSize }]}>
-                            {(() => {
-                                // Boss战或小怪物HP满时用word，小怪物HP=1时用word2
-                                const useSecondWord = gameState.phase === 'monster' &&
-                                    currentMonster && currentMonster.hp === 1 && currentChar.word2;
-                                const word = useSecondWord ? currentChar.word2! : currentChar.word;
-                                // 用拼音替换目标字
-                                return word.replace(currentChar.char, currentChar.pinyin);
-                            })()}
-                        </Text>
+                        {/* 显示词语，用拼音替代要写的字，点击可朗读完整词语 */}
+                        <View style={styles.hintRow}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    const useSecondWord = gameState.phase === 'monster' &&
+                                        currentMonster && currentMonster.hp === 1 && currentChar.word2;
+                                    const word = useSecondWord ? currentChar.word2! : currentChar.word;
+                                    getAudioService().speakWord(word).catch(console.error);
+                                }}
+                            >
+                                <Text style={[styles.hintText, { fontSize: sizes.fontSize }]}>
+                                    {(() => {
+                                        // Boss战或小怪物HP满时用word，小怪物HP=1时用word2
+                                        const useSecondWord = gameState.phase === 'monster' &&
+                                            currentMonster && currentMonster.hp === 1 && currentChar.word2;
+                                        const word = useSecondWord ? currentChar.word2! : currentChar.word;
+                                        // 用拼音替换目标字
+                                        return word.replace(currentChar.char, currentChar.pinyin);
+                                    })()}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.speakerButton}
+                                onPress={() => getAudioService().speakText(currentChar.char).catch(console.error)}
+                            >
+                                <Text style={styles.speakerIcon}>🔊</Text>
+                            </TouchableOpacity>
+                        </View>
                         {/* 点击提示显示描述性提示 */}
                         {showHint && (
                             <Text style={styles.hintDescription}>{currentChar.hint}</Text>
@@ -699,6 +728,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 8,
         marginBottom: 4,
+    },
+    hintRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    speakerButton: {
+        marginLeft: 12,
+        padding: 4,
+    },
+    speakerIcon: {
+        fontSize: 24,
     },
     hintText: {
         fontSize: 28,

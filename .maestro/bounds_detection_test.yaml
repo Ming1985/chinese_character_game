@@ -1,0 +1,92 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - 屏幕边界检测测试
+# 
+# 这个测试使用分区点击来检测 UI 元素是否在预期位置
+# 
+# 原理:
+# 1. 将屏幕分成网格区域
+# 2. 点击每个区域并检查反馈
+# 3. 如果按钮应该在底部但点击底部无反应,说明布局有问题
+
+# 启动并导航到战斗界面
+- launchApp
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 8000
+
+# 导航流程 (与 layout_validation_test 相同)
+- tapOn:
+    point: "50%,70%"
+- extendedWaitUntil:
+    visible:
+      textRegex: ".*年级.*"
+    timeout: 5000
+- tapOn:
+    point: "25%,40%"
+- extendedWaitUntil:
+    visible:
+      textRegex: ".*课.*"  
+    timeout: 5000
+- tapOn:
+    text: "V2"
+    index: 0
+- extendedWaitUntil:
+    timeout: 3000
+    visible: ".*"
+
+# ========== 屏幕分区触摸测试 ==========
+
+# 底部左侧区域 - 应该是灯泡按钮
+- takeScreenshot: "bounds_01_before_tap"
+
+# 点击底部左侧 (10%, 90%) - 灯泡按钮预期位置
+- tapOn:
+    point: "10%,90%"
+    label: "Tap bottom-left where hint button SHOULD be"
+
+- takeScreenshot: "bounds_02_after_bottom_left"
+
+# 点击底部右侧 (90%, 90%) - 跳过按钮预期位置
+- tapOn:
+    point: "90%,90%"
+    label: "Tap bottom-right where skip button SHOULD be"
+    
+- takeScreenshot: "bounds_03_after_bottom_right"
+
+# 点击底部中央 (50%, 85%) - 田字格预期位置
+- tapOn:
+    point: "50%,85%"
+    label: "Tap bottom center where writing pad SHOULD be"
+
+- takeScreenshot: "bounds_04_after_center_bottom"
+
+# ========== 可见性断言 ==========
+
+# 这些断言如果失败,说明元素确实不在屏幕上
+- assertVisible:
+    text: "💡"
+    optional: true
+- assertVisible:
+    text: "⏭️"
+    optional: true
+
+# 最终截图用于人工审核
+- takeScreenshot: "bounds_05_final"
+
+# ========== 测试结论说明 ==========
+# 
+# 如何解读测试结果:
+# 
+# 1. 查看 bounds_01_before_tap - 这是战斗界面的初始状态
+# 2. 如果 assertVisible 对 💡 或 ⏭️ 失败:
+#    → 按钮确实不在屏幕可见范围内,需要修复布局
+# 
+# 3. 查看截图对比:
+#    - 如果所有截图看起来一样,说明底部点击没有触发任何元素
+#    - 这暗示元素可能被渲染到屏幕外或被遮挡
+#
+# 4. iPad 横屏模式下的常见问题:
+#    - SafeAreaView 的 edges 配置不当
+#    - 固定高度/位置使用 SCREEN.height 但没考虑横屏旋转
+#    - flexDirection 和 flex 布局在横屏下表现异常

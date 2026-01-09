@@ -1,0 +1,38 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - 战斗入口测试
+# 测试从首页到进入战斗界面的完整流程
+
+# 启动应用
+- launchApp
+
+# 等待首页加载
+- assertVisible: "汉字小勇士"
+
+# 进入课本选择
+- tapOn: "开始冒险"
+- assertVisible: "选择课本"
+
+# 选择一年级上册 (通常有较少的字，适合测试)
+- tapOn: "一年级上册"
+
+# 等待关卡列表
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 5000
+
+# 截图关卡选择
+- takeScreenshot: "battle_entry_01_levels"
+
+# 点击第一个关卡的"闯关"按钮
+- tapOn:
+    text: "闯关"
+    index: 0
+
+# 等待战斗界面加载 (根据实际UI调整断言)
+- extendedWaitUntil:
+    visible: ".*"  # 等待任意元素出现
+    timeout: 5000
+
+# 截图战斗界面
+- takeScreenshot: "battle_entry_02_battle"

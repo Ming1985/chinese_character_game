@@ -18,10 +18,17 @@ export enum BackgroundMusic {
 export interface AudioConfig {
   enableSoundEffects: boolean;  // 音效开关
   enableMusic: boolean;          // 背景音乐开关
-  enablePinyin: boolean;         // 拼音朗读开关
+  enablePinyin: boolean;         // 语音朗读开关
   soundVolume: number;           // 音效音量 (0.0 - 1.0)
   musicVolume: number;           // 音乐音量 (0.0 - 1.0)
-  pinyinVolume: number;          // 拼音朗读音量 (0.0 - 1.0)
+  pinyinVolume: number;          // 语音朗读音量 (0.0 - 1.0)
+  voiceSpeed: number;            // 语音语速 (1-5, 映射到 TTS 0-15)
+}
+
+// TTS 朗读选项
+export interface TTSOptions {
+  speed?: number;   // 0-15, 默认根据 config.voiceSpeed
+  pitch?: number;   // 0-15, 默认 5
 }
 
 // 音频资源定义

@@ -1,6 +1,7 @@
 import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
 import { Platform } from 'react-native';
-import { SoundEffect, BackgroundMusic, AudioConfig, SoundAsset } from './audioTypes';
+import { SoundEffect, BackgroundMusic, AudioConfig, SoundAsset, TTSOptions } from './audioTypes';
 import { OCR_CONFIG } from '../config/ocr';
 
 // 音频资源映射
@@ -19,13 +20,16 @@ const BAIDU_TTS_URL = 'https://tsn.baidu.com/text2audio';
 class AudioService {
   private sounds: Map<string, Audio.Sound> = new Map();
   private backgroundMusic: Audio.Sound | null = null;
+  private currentVoice: Audio.Sound | null = null;  // 当前语音
+  private isSpeaking = false;
   private config: AudioConfig = {
     enableSoundEffects: true,
     enableMusic: false,
-    enablePinyin: true,  // 默认开启拼音朗读
+    enablePinyin: true,  // 默认开启语音朗读
     soundVolume: 0.7,
     musicVolume: 0.3,
     pinyinVolume: 0.8,
+    voiceSpeed: 3,  // 默认语速 (1-5)
   };
   private isInitialized = false;
   private accessToken: string | null = null;  // 百度 TTS Access Token
@@ -159,40 +163,75 @@ class AudioService {
     }
   }
 
-  // 朗读拼音（百度 TTS）
-  async speakPinyin(pinyin: string): Promise<void> {
-    if (!this.config.enablePinyin || !pinyin) return;
+  // 停止当前语音
+  async stopSpeaking(): Promise<void> {
+    // 停止 expo-speech
+    Speech.stop();
 
-    if (!this.accessToken) {
-      console.warn('⚠️  Baidu TTS Access Token not available');
+    // 停止 expo-av 音频（如果有）
+    if (this.currentVoice) {
+      try {
+        await this.currentVoice.stopAsync();
+        await this.currentVoice.unloadAsync();
+      } catch (error) {
+        // 忽略已卸载的错误
+      }
+      this.currentVoice = null;
+    }
+    this.isSpeaking = false;
+  }
+
+  // 朗读文本（使用系统原生 TTS）
+  async speakText(text: string, options?: TTSOptions): Promise<void> {
+    if (!this.config.enablePinyin || !text) {
+      console.log('🔇 speakText skipped: enablePinyin=', this.config.enablePinyin, 'text=', text);
       return;
     }
 
     try {
-      // 构建 TTS 请求 URL
-      const text = encodeURIComponent(pinyin);
-      const ttsUrl = `${BAIDU_TTS_URL}?tex=${text}&tok=${this.accessToken}&cuid=hanzi_game&ctp=1&lan=zh&spd=5&pit=5&vol=5&per=0&aue=3`;
+      // 停止当前朗读
+      await this.stopSpeaking();
+      this.isSpeaking = true;
 
-      // 创建并播放音频
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: ttsUrl },
-        {
-          shouldPlay: true,
-          volume: this.config.pinyinVolume,
-        }
-      );
+      // 语速映射: voiceSpeed 1-5 -> Speech rate 0.5-1.5
+      const rateMap = [0.5, 0.75, 1.0, 1.25, 1.5];
+      const rate = rateMap[this.config.voiceSpeed - 1] ?? 1.0;
 
-      // 播放完成后自动卸载
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync().catch(console.error);
-        }
+      console.log(`🔊 Speaking: "${text}" (rate: ${rate})`);
+
+      Speech.speak(text, {
+        language: 'zh-CN',
+        rate: rate,
+        pitch: 1.0,
+        volume: this.config.pinyinVolume,
+        onDone: () => {
+          this.isSpeaking = false;
+          console.log('🔊 Speech done');
+        },
+        onError: (error) => {
+          console.error('❌ Speech error:', error);
+          this.isSpeaking = false;
+        },
       });
-
-      console.log(`🔊 Speaking pinyin: ${pinyin}`);
     } catch (error) {
-      console.error(`❌ Failed to speak pinyin: ${pinyin}`, error);
+      console.error(`❌ Failed to speak: ${text}`, error);
+      this.isSpeaking = false;
     }
+  }
+
+  // 朗读拼音
+  async speakPinyin(pinyin: string): Promise<void> {
+    return this.speakText(pinyin);
+  }
+
+  // 朗读词语
+  async speakWord(word: string): Promise<void> {
+    return this.speakText(word);
+  }
+
+  // 检查是否正在朗读
+  isSpeakingNow(): boolean {
+    return this.isSpeaking;
   }
 
   // 更新配置
@@ -213,6 +252,7 @@ class AudioService {
   // 清理资源
   async cleanup(): Promise<void> {
     await this.stopBackgroundMusic();
+    await this.stopSpeaking();
 
     const unloadPromises = Array.from(this.sounds.values()).map(sound =>
       sound.unloadAsync().catch(console.error)

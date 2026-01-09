@@ -38,6 +38,11 @@ async function initDatabase(database: SQLite.SQLiteDatabase): Promise<void> {
             correct_count INTEGER DEFAULT 0,
             wrong_count INTEGER DEFAULT 0
         );
+
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
     `);
 }
 
@@ -252,4 +257,144 @@ export async function getLevelProgress(charIds: string[]): Promise<Map<string, C
     }
 
     return progressMap;
+}
+
+// ============ 设置存储 ============
+
+// 保存设置
+export async function saveSetting(key: string, value: string): Promise<void> {
+    const database = await getDatabase();
+    await database.runAsync(
+        `INSERT INTO app_settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = ?`,
+        [key, value, value]
+    );
+}
+
+// 读取单个设置
+export async function getSetting(key: string): Promise<string | null> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{ value: string }>(
+        'SELECT value FROM app_settings WHERE key = ?',
+        [key]
+    );
+    return result?.value ?? null;
+}
+
+// 读取所有设置
+export async function getAllSettings(): Promise<Record<string, string>> {
+    const database = await getDatabase();
+    const results = await database.getAllAsync<{ key: string; value: string }>(
+        'SELECT * FROM app_settings'
+    );
+    return Object.fromEntries(results.map(r => [r.key, r.value]));
+}
+
+// ============ 学习报告统计 ============
+
+// 获取总体统计
+export async function getOverallStats(): Promise<{
+    totalPracticed: number;
+    totalCorrect: number;
+    totalWrong: number;
+    accuracy: number;
+}> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{
+        total_correct: number;
+        total_wrong: number;
+    }>(`
+        SELECT 
+            COALESCE(SUM(correct_count), 0) as total_correct,
+            COALESCE(SUM(wrong_count), 0) as total_wrong
+        FROM character_progress
+    `);
+
+    const totalCorrect = result?.total_correct ?? 0;
+    const totalWrong = result?.total_wrong ?? 0;
+    const totalPracticed = totalCorrect + totalWrong;
+    const accuracy = totalPracticed > 0 ? totalCorrect / totalPracticed : 0;
+
+    return { totalPracticed, totalCorrect, totalWrong, accuracy };
+}
+
+// 获取近7天每日统计
+export async function getWeeklyStats(): Promise<Array<{
+    date: string;
+    practiced: number;
+    correct: number;
+    wrong: number;
+}>> {
+    const database = await getDatabase();
+    
+    // 生成近7天日期列表
+    const dates: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+    }
+
+    const results = await database.getAllAsync<{
+        date: string;
+        chars_practiced: number;
+        correct_count: number;
+        wrong_count: number;
+    }>(`
+        SELECT date, chars_practiced, correct_count, wrong_count 
+        FROM daily_stats 
+        WHERE date >= ?
+        ORDER BY date ASC
+    `, [dates[0]]);
+
+    // 将结果映射到日期数组
+    const statsMap = new Map(results.map(r => [r.date, r]));
+    
+    return dates.map(date => {
+        const stat = statsMap.get(date);
+        return {
+            date,
+            practiced: stat?.chars_practiced ?? 0,
+            correct: stat?.correct_count ?? 0,
+            wrong: stat?.wrong_count ?? 0,
+        };
+    });
+}
+
+// 获取最难的字（错误率最高）
+export async function getDifficultCharacters(limit: number = 5): Promise<Array<{
+    charId: string;
+    correctCount: number;
+    wrongCount: number;
+    difficulty: number;
+}>> {
+    const database = await getDatabase();
+    const results = await database.getAllAsync<{
+        char_id: string;
+        correct_count: number;
+        wrong_count: number;
+        difficulty: number;
+    }>(`
+        SELECT char_id, correct_count, wrong_count, difficulty
+        FROM character_progress
+        WHERE wrong_count > 0
+        ORDER BY difficulty DESC, wrong_count DESC
+        LIMIT ?
+    `, [limit]);
+
+    return results.map(r => ({
+        charId: r.char_id,
+        correctCount: r.correct_count,
+        wrongCount: r.wrong_count,
+        difficulty: r.difficulty,
+    }));
+}
+
+// 获取已掌握的字数（difficulty < 0.3）
+export async function getMasteredCount(): Promise<number> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM character_progress WHERE difficulty < 0.3'
+    );
+    return result?.count ?? 0;
 }

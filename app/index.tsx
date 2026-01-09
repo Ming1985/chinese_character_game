@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getTodayPracticeCount } from '../src/lib/database';
@@ -16,6 +16,14 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
+            {/* 设置按钮 */}
+            <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => router.push('/settings')}
+            >
+                <Text style={styles.settingsIcon}>⚙️</Text>
+            </TouchableOpacity>
+
             <View style={styles.header}>
                 <Text style={styles.title}>汉字小勇士</Text>
                 <Text style={styles.subtitle}>书写汉字，击败怪兽</Text>
@@ -28,17 +36,17 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.menu}>
-                <Link href="/textbooks" style={styles.menuButton}>
+                <Link href="/textbooks" style={styles.menuButton} accessibilityLabel="开始冒险" testID="start-adventure-btn">
                     <Text style={styles.menuButtonText}>开始冒险</Text>
                 </Link>
 
-                <Link href="/review" style={[styles.menuButton, styles.menuButtonSecondary]}>
+                <Link href="/review" style={[styles.menuButton, styles.menuButtonSecondary]} accessibilityLabel="每日复习" testID="daily-review-btn">
                     <Text style={styles.menuButtonText}>每日复习</Text>
                 </Link>
 
-                <TouchableOpacity style={[styles.menuButton, styles.menuButtonTertiary]}>
+                <Link href="/report" style={[styles.menuButton, styles.menuButtonTertiary]} accessibilityLabel="学习报告" testID="learning-report-btn">
                     <Text style={styles.menuButtonText}>学习报告</Text>
-                </TouchableOpacity>
+                </Link>
             </View>
 
             <View style={styles.footer}>
@@ -53,6 +61,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#1a1a2e',
         padding: 20,
+    },
+    settingsButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 10,
+        padding: 8,
+    },
+    settingsIcon: {
+        fontSize: 28,
     },
     header: {
         alignItems: 'center',

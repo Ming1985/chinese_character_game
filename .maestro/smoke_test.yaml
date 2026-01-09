@@ -1,0 +1,48 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - 冒烟测试 (优化版)
+# 使用更宽松的选择器策略
+
+# 启动应用
+- launchApp
+
+# 等待加载完成
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# 截图首页
+- takeScreenshot: "01_home_loaded"
+
+# 使用 testID 或 accessibilityLabel 点击按钮
+# 如果 testID 不可用，尝试使用 id 选择器
+- tapOn:
+    id: "start-adventure-btn"
+    optional: true
+
+# 如果上一步失败,使用坐标点击 (iPad Pro 13 inch 模拟器)
+# 备选方案：使用相对位置点击
+- runFlow:
+    when:
+      notVisible: "选择课本"
+    commands:
+      # 首页中间偏下的位置是按钮区域,尝试点击第一个按钮
+      - tapOn:
+          point: "50%,70%"
+
+# 等待课本选择页
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 5000
+
+# 截图课本页
+- takeScreenshot: "02_textbooks_page"
+
+# 返回首页
+- tapOn: "← 返回"
+
+# 验证回到首页
+- assertVisible: "汉字小勇士"
+
+# 最终截图
+- takeScreenshot: "03_back_to_home"
