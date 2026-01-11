@@ -63,6 +63,15 @@ export default function HomeScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                    style={[styles.menuButton, styles.menuButtonGame, { maxWidth: buttonMaxWidth }]}
+                    onPress={() => router.push('/mini-games')}
+                    accessibilityLabel="小游戏"
+                    testID="mini-games-btn"
+                >
+                    <Text style={styles.menuButtonText}>小游戏</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                     style={[styles.menuButton, styles.menuButtonTertiary, { maxWidth: buttonMaxWidth }]}
                     onPress={() => router.push('/report')}
                     accessibilityLabel="学习报告"
@@ -152,6 +161,9 @@ const styles = StyleSheet.create({
     },
     menuButtonSecondary: {
         backgroundColor: '#0f3460',
+    },
+    menuButtonGame: {
+        backgroundColor: '#9b59b6',
     },
     menuButtonTertiary: {
         backgroundColor: 'transparent',

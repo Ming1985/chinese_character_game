@@ -39,6 +39,8 @@ export default function RootLayout() {
                 <Stack.Screen name="review" />
                 <Stack.Screen name="report" />
                 <Stack.Screen name="daily-detail" />
+                <Stack.Screen name="mini-games" />
+                <Stack.Screen name="similar-char-game" />
                 <Stack.Screen name="settings" />
             </Stack>
         </View>
