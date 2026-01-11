@@ -35,7 +35,10 @@ export default function RootLayout() {
                 <Stack.Screen name="levels" />
                 <Stack.Screen name="characters" />
                 <Stack.Screen name="battle" />
+                <Stack.Screen name="battle-v2" />
                 <Stack.Screen name="review" />
+                <Stack.Screen name="report" />
+                <Stack.Screen name="daily-detail" />
                 <Stack.Screen name="settings" />
             </Stack>
         </View>

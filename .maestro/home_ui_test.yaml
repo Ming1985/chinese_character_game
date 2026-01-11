@@ -1,0 +1,77 @@
+appId: host.exp.Exponent
+---
+# 首页 UI 可见性与可点击测试
+
+- launchApp
+
+# Expo Go 启动后，点击 Recently opened 中的项目进入应用
+- runFlow:
+    when:
+      visible: "Recently opened"
+    commands:
+      - tapOn:
+          text: "汉字小勇士"
+          index: 0
+
+# 等待应用首页加载
+- extendedWaitUntil:
+    visible: "开始冒险"
+    timeout: 15000
+
+# === UI 可见性验证 ===
+- assertVisible: "汉字小勇士"
+- assertVisible:
+    text: ".*击败怪兽.*"
+- assertVisible: "开始冒险"
+- assertVisible: "每日复习"
+- assertVisible: "学习报告"
+- assertVisible:
+    text: ".*今日已练习.*"
+
+- takeScreenshot: "home_01_all_elements_visible"
+
+# === 按钮可点击性测试 ===
+
+# 测试1: 设置按钮可点击
+- tapOn: "⚙️"
+- extendedWaitUntil:
+    visible: "设置"
+    timeout: 3000
+- assertVisible: "设置"
+- takeScreenshot: "home_02_settings_opened"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+# 测试2: 开始冒险按钮可点击 (使用 testID)
+- tapOn:
+    id: "start-adventure-btn"
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 3000
+- assertVisible: "选择课本"
+- takeScreenshot: "home_03_textbooks_opened"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+# 测试3: 每日复习按钮可点击
+- tapOn:
+    id: "daily-review-btn"
+- extendedWaitUntil:
+    visible: "每日复习"
+    timeout: 3000
+- takeScreenshot: "home_04_review_opened"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+# 测试4: 学习报告按钮可点击
+- tapOn:
+    id: "learning-report-btn"
+- extendedWaitUntil:
+    visible: "学习报告"
+    timeout: 3000
+- takeScreenshot: "home_05_report_opened"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+# 最终状态截图
+- takeScreenshot: "home_06_test_complete"

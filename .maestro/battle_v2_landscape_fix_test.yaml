@@ -1,0 +1,67 @@
+appId: host.exp.Exponent
+---
+# V2 战斗横屏布局修复验证
+
+- launchApp
+
+# 从 Expo Go 进入应用
+- runFlow:
+    when:
+      visible: "Recently opened"
+    commands:
+      - tapOn:
+          text: "汉字小勇士"
+          index: 0
+
+# 等待首页
+- extendedWaitUntil:
+    visible: "开始冒险"
+    timeout: 15000
+
+# 进入课本选择
+- tapOn:
+    id: "start-adventure-btn"
+
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 5000
+
+# 选择课本
+- tapOn:
+    point: "25%,35%"
+
+- extendedWaitUntil:
+    visible: "V2"
+    timeout: 5000
+
+# 进入 V2 战斗
+- tapOn:
+    text: "V2"
+    index: 0
+
+# 等待战斗界面
+- extendedWaitUntil:
+    visible: "清除"
+    timeout: 10000
+
+- takeScreenshot: "landscape_fix_01_portrait"
+
+# === 测试喇叭点击发音 ===
+# 点击听写提示区域（包含喇叭）
+- tapOn:
+    point: "50%,42%"
+
+- assertVisible: "清除"
+- takeScreenshot: "landscape_fix_02_speaker_clicked"
+
+# === 旋转到横屏 ===
+# (需要在 Maestro 中手动设置或使用 simctl)
+# 这里用截图记录当前状态
+
+- takeScreenshot: "landscape_fix_03_ready_for_rotate"
+
+# === 验证按钮可见 ===
+- assertVisible: "清除"
+- assertVisible: "确定"
+
+- takeScreenshot: "landscape_fix_04_buttons_visible"

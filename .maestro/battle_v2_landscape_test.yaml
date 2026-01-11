@@ -1,0 +1,114 @@
+appId: host.exp.Exponent
+---
+# 汉字小勇士 - V2战斗界面横屏测试
+# 设备: iPad Pro 13寸 横屏模式
+# 测试目标:
+#   1. UI元素是否被遮挡
+#   2. 所有按钮是否可视且可按
+#   3. 喇叭/提示按钮是否正常工作
+
+# 启动 Expo Go
+- launchApp:
+    clearState: false
+
+# 等待 Expo Go 加载 (使用更宽松的匹配)
+- extendedWaitUntil:
+    visible: ".*[Rr]ecently.*|.*Expo.*|.*汉字.*"
+    timeout: 30000
+
+- takeScreenshot: "v2_00_expo_loaded"
+
+# 点击"汉字小勇士"项目
+- tapOn:
+    text: "汉字小勇士"
+    index: 0
+
+# 等待首页加载
+- extendedWaitUntil:
+    visible: "开始冒险"
+    timeout: 30000
+
+- takeScreenshot: "v2_01_home"
+
+# 进入课本选择
+- tapOn:
+    text: "开始冒险"
+
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 15000
+
+- takeScreenshot: "v2_02_textbooks"
+
+# 选择第一个课本
+- tapOn:
+    point: "20%,40%"
+
+# 等待关卡列表
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 15000
+
+- takeScreenshot: "v2_03_levels"
+
+# ========== 进入 V2 战斗界面 ==========
+# 点击第一个关卡的 V2 按钮
+- tapOn:
+    text: "V2"
+    index: 0
+
+# 等待 V2 战斗界面加载 (等待田字格出现)
+- extendedWaitUntil:
+    timeout: 20000
+    visible: "清除|确定|❤️"
+
+# 等待动画稳定
+- swipe:
+    direction: LEFT
+    duration: 50
+
+- takeScreenshot: "v2_04_battle_initial"
+
+# ========== UI 元素可见性验证 ==========
+
+# 验证田字格书写区的清除按钮
+- assertVisible:
+    text: "清除"
+    label: "清除按钮必须可见"
+
+# 验证田字格书写区的确定按钮
+- assertVisible:
+    text: "确定"
+    label: "确定按钮必须可见"
+
+# 验证提示按钮 (通过 testID)
+- assertVisible:
+    id: "hint-button"
+    label: "提示按钮必须可见"
+
+# 验证跳过按钮 (通过 testID)
+- assertVisible:
+    id: "skip-button"
+    label: "跳过按钮必须可见"
+
+- takeScreenshot: "v2_05_ui_elements_verified"
+
+# ========== 按钮交互测试 ==========
+
+# 测试点击提示按钮
+- tapOn:
+    id: "hint-button"
+- takeScreenshot: "v2_06_after_hint_tap"
+
+# 等待一下
+- swipe:
+    direction: LEFT
+    duration: 50
+
+# 测试点击跳过按钮
+- tapOn:
+    id: "skip-button"
+- takeScreenshot: "v2_07_after_skip_tap"
+
+# 最终截图
+- takeScreenshot: "v2_08_test_complete"

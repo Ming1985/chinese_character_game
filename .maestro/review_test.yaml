@@ -1,0 +1,60 @@
+appId: host.exp.Exponent
+---
+# 每日复习页面测试
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# 进入复习页面
+- tapOn:
+    id: "daily-review-btn"
+
+- extendedWaitUntil:
+    visible: "每日复习"
+    timeout: 5000
+
+# === UI 可见性验证 ===
+- assertVisible: "每日复习"
+- assertVisible: "← 返回"
+
+- takeScreenshot: "review_01_page_loaded"
+
+# === 场景1: 有待复习的字 ===
+- runFlow:
+    when:
+      visible: "今日需复习"
+    commands:
+      - assertVisible: "今日需复习"
+      - assertVisible: "个汉字"
+      - assertVisible: "开始复习"
+      - takeScreenshot: "review_02_has_chars"
+      # 测试开始复习按钮
+      - tapOn: "开始复习"
+      - extendedWaitUntil:
+          timeout: 5000
+      - takeScreenshot: "review_03_battle_started"
+      - tapOn: "← 退出"
+      - runFlow:
+          when:
+            visible: "确认"
+          commands:
+            - tapOn: "确认"
+
+# === 场景2: 无待复习的字 ===
+- runFlow:
+    when:
+      visible: "太棒了"
+    commands:
+      - assertVisible: "太棒了"
+      - assertVisible: "今日没有需要复习的汉字"
+      - assertVisible: "去冒险学习新字吧"
+      - takeScreenshot: "review_04_empty_state"
+
+# === 返回首页 ===
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+- takeScreenshot: "review_05_test_complete"

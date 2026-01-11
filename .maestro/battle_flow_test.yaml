@@ -1,0 +1,85 @@
+appId: host.exp.Exponent
+---
+# 战斗流程 UI 测试
+# 测试进入战斗、UI元素可见性、返回功能
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# 进入课本选择
+- tapOn:
+    id: "start-adventure-btn"
+
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 5000
+
+# 选择一年级上册（字数较少，适合测试）
+- tapOn: "一年级上册"
+
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 5000
+
+# === 测试闯关按钮（经典模式） ===
+- tapOn:
+    text: "闯关"
+    index: 0
+
+# 等待战斗界面加载
+- extendedWaitUntil:
+    timeout: 5000
+
+- takeScreenshot: "battle_01_entered"
+
+# 验证战斗界面基本元素（根据实际 UI 调整）
+# 通常应有：退出按钮、生命显示、田字格等
+
+# 退出战斗
+- tapOn: "← 退出"
+
+# 确认退出对话框（如果有）
+- runFlow:
+    when:
+      visible: "确认"
+    commands:
+      - tapOn: "确认"
+
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 5000
+
+- takeScreenshot: "battle_02_exited"
+
+# === 测试 V2 模式 ===
+- tapOn:
+    text: "V2"
+    index: 0
+
+- extendedWaitUntil:
+    timeout: 5000
+
+- takeScreenshot: "battle_03_v2_entered"
+
+# 尝试退出
+- tapOn: "← 退出"
+
+- runFlow:
+    when:
+      visible: "确认"
+    commands:
+      - tapOn: "确认"
+
+- extendedWaitUntil:
+    visible: "闯关"
+    timeout: 5000
+
+# 返回首页
+- tapOn: "← 返回"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+- takeScreenshot: "battle_04_test_complete"

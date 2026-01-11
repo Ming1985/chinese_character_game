@@ -1,0 +1,54 @@
+appId: host.exp.Exponent
+---
+# 测试原始战斗界面
+
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 10000
+
+# 如果在 Expo Go，点击汉字小勇士
+- runFlow:
+    when:
+      visible: "汉字小勇士"
+    commands:
+      - tapOn:
+          text: "汉字小勇士"
+          index: 0
+
+- extendedWaitUntil:
+    visible: "开始冒险|闯关"
+    timeout: 15000
+
+# 如果在首页，导航到关卡
+- runFlow:
+    when:
+      visible: "开始冒险"
+    commands:
+      - tapOn: "开始冒险"
+      - extendedWaitUntil:
+          visible: "选择课本"
+          timeout: 10000
+      - tapOn:
+          point: "20%,40%"
+      - extendedWaitUntil:
+          visible: "闯关"
+          timeout: 10000
+
+- takeScreenshot: "battle_01_levels"
+
+# 点击第一个闯关按钮（不是 V2）
+- tapOn:
+    text: "闯关"
+    index: 0
+
+- takeScreenshot: "battle_02_after_click"
+
+# 等待战斗界面
+- extendedWaitUntil:
+    visible: "清除|确定|❤️"
+    timeout: 10000
+
+- takeScreenshot: "battle_03_battle_screen"

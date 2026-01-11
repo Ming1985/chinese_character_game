@@ -1,0 +1,11 @@
+appId: host.exp.Exponent
+---
+# 运行所有 UI 测试
+# 使用: maestro test .maestro/run_all_tests.yaml
+
+- runFlow: home_ui_test.yaml
+- runFlow: textbook_levels_test.yaml
+- runFlow: settings_test.yaml
+- runFlow: report_test.yaml
+- runFlow: review_test.yaml
+- runFlow: battle_flow_test.yaml

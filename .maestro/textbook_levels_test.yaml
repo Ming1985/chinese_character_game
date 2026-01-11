@@ -1,0 +1,94 @@
+appId: host.exp.Exponent
+---
+# 课本选择与关卡选择 UI 测试
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# === 进入课本选择页 ===
+- tapOn:
+    id: "start-adventure-btn"
+
+- extendedWaitUntil:
+    visible: "选择课本"
+    timeout: 5000
+
+# === 课本页 UI 验证 ===
+- assertVisible: "选择课本"
+- assertVisible: "← 返回"
+- assertVisible: "一年级"
+- assertVisible: "二年级"
+- assertVisible: "一年级上册"
+- assertVisible: "一年级下册"
+- assertVisible: "二年级上册"
+- assertVisible: "二年级下册"
+
+- takeScreenshot: "textbooks_01_all_visible"
+
+# === 测试一年级上册 ===
+- tapOn: "一年级上册"
+
+- extendedWaitUntil:
+    visible: "一年级上册"
+    timeout: 5000
+
+# 验证关卡页元素
+- assertVisible: "← 返回"
+- assertVisible: "预览"
+- assertVisible: "闯关"
+
+- takeScreenshot: "textbooks_02_grade1_up_levels"
+
+# 返回课本选择
+- tapOn: "← 返回"
+- assertVisible: "选择课本"
+
+# === 测试二年级上册 ===
+- tapOn: "二年级上册"
+
+- extendedWaitUntil:
+    visible: "二年级上册"
+    timeout: 5000
+
+# 验证具体关卡名称
+- assertVisible: "课文1 小蝌蚪找妈妈"
+
+- takeScreenshot: "textbooks_03_grade2_up_levels"
+
+# === 测试预览按钮 ===
+- tapOn:
+    text: "预览"
+    index: 0
+
+- extendedWaitUntil:
+    visible: "生字预览"
+    timeout: 3000
+
+- takeScreenshot: "textbooks_04_character_preview"
+
+# 返回
+- tapOn: "← 返回"
+- assertVisible: "课文1 小蝌蚪找妈妈"
+
+# === 测试 V2 按钮 ===
+- tapOn:
+    text: "V2"
+    index: 0
+
+- extendedWaitUntil:
+    timeout: 3000
+
+- takeScreenshot: "textbooks_05_battle_v2"
+
+# 返回
+- tapOn: "← 返回"
+
+# 返回首页
+- tapOn: "← 返回"
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+- takeScreenshot: "textbooks_06_test_complete"

@@ -1,0 +1,75 @@
+appId: host.exp.Exponent
+---
+# 设置页面功能测试
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# 进入设置页面
+- tapOn: "⚙️"
+
+- extendedWaitUntil:
+    visible: "设置"
+    timeout: 5000
+
+# === UI 可见性验证 ===
+- assertVisible: "设置"
+- assertVisible: "← 返回"
+- assertVisible: "音效"
+- assertVisible: "游戏音效"
+- assertVisible: "语音"
+- assertVisible: "语音朗读"
+- assertVisible: "音量"
+- assertVisible: "语速"
+- assertVisible: "测试语音"
+
+- takeScreenshot: "settings_01_all_visible"
+
+# === 测试音量调节按钮 ===
+# 点击音量减少
+- tapOn:
+    text: "-"
+    index: 0
+
+- takeScreenshot: "settings_02_volume_decreased"
+
+# 点击音量增加
+- tapOn:
+    text: "+"
+    index: 0
+- tapOn:
+    text: "+"
+    index: 0
+
+- takeScreenshot: "settings_03_volume_increased"
+
+# === 测试语速调节按钮 ===
+# 点击语速减少
+- tapOn:
+    text: "-"
+    index: 1
+
+- takeScreenshot: "settings_04_speed_decreased"
+
+# 点击语速增加
+- tapOn:
+    text: "+"
+    index: 1
+
+- takeScreenshot: "settings_05_speed_increased"
+
+# === 测试语音按钮 ===
+- tapOn: "测试语音"
+- extendedWaitUntil:
+    timeout: 2000
+
+- takeScreenshot: "settings_06_voice_tested"
+
+# === 返回首页 ===
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+- takeScreenshot: "settings_07_test_complete"

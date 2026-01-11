@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
@@ -9,6 +9,7 @@ import {
     getDifficultCharacters,
     getMasteredCount,
     getReviewCount,
+    resetAllData,
 } from '../src/lib/database';
 import { getCharacterById } from '../src/data';
 
@@ -77,6 +78,29 @@ export default function ReportScreen() {
         }
     };
 
+    // 重置所有数据
+    const handleReset = () => {
+        Alert.alert(
+            '确认重置',
+            '这将清除所有学习记录，包括：\n\n• 汉字练习进度\n• 关卡完成状态\n• 每日统计数据\n\n此操作无法撤销！',
+            [
+                { text: '取消', style: 'cancel' },
+                {
+                    text: '确认重置',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await resetAllData();
+                            loadData();
+                        } catch (error) {
+                            console.error('重置失败:', error);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     // 获取星期几缩写
     const getWeekdayLabel = (dateStr: string) => {
         const days = ['日', '一', '二', '三', '四', '五', '六'];
@@ -132,7 +156,12 @@ export default function ReportScreen() {
 
                         {/* 本周趋势 */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>📊 本周练习</Text>
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionTitle}>📊 本周练习</Text>
+                                <TouchableOpacity onPress={() => router.push('/daily-detail')}>
+                                    <Text style={styles.detailLink}>查看详情 →</Text>
+                                </TouchableOpacity>
+                            </View>
                             <View style={styles.chartContainer}>
                                 {data.weeklyStats.map((stat, index) => (
                                     <View key={stat.date} style={styles.chartBar}>
@@ -186,6 +215,11 @@ export default function ReportScreen() {
                                 </View>
                             )}
                         </View>
+
+                        {/* 重置按钮 */}
+                        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+                            <Text style={styles.resetButtonText}>重置学习数据</Text>
+                        </TouchableOpacity>
 
                         {/* 底部间距 */}
                         <View style={{ height: 40 }} />
@@ -288,11 +322,20 @@ const styles = StyleSheet.create({
         padding: 16,
         marginTop: 12,
     },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
     sectionTitle: {
         fontSize: 16,
         fontWeight: '600',
         color: '#eee',
-        marginBottom: 16,
+    },
+    detailLink: {
+        fontSize: 14,
+        color: '#f39c12',
     },
     chartContainer: {
         flexDirection: 'row',
@@ -360,6 +403,22 @@ const styles = StyleSheet.create({
     difficultWrong: {
         fontSize: 12,
         color: '#e74c3c',
+    },
+
+    // 重置按钮
+    resetButton: {
+        marginTop: 24,
+        backgroundColor: '#2a2a3e',
+        borderWidth: 1,
+        borderColor: '#e74c3c',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+    },
+    resetButtonText: {
+        color: '#e74c3c',
+        fontSize: 14,
+        fontWeight: '500',
     },
 
     // 空状态

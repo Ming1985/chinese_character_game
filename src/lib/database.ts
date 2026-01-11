@@ -43,6 +43,16 @@ async function initDatabase(database: SQLite.SQLiteDatabase): Promise<void> {
             key TEXT PRIMARY KEY,
             value TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS daily_practice_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            char_id TEXT NOT NULL,
+            is_correct INTEGER NOT NULL,
+            practiced_at INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_practice_log_date ON daily_practice_log(date);
     `);
 }
 
@@ -131,6 +141,13 @@ export async function saveAnswerResult(
             correct_count = correct_count + ?,
             wrong_count = wrong_count + ?`,
         [today, isCorrect ? 1 : 0, isCorrect ? 0 : 1, isCorrect ? 1 : 0, isCorrect ? 0 : 1]
+    );
+
+    // 写入练习日志（用于每日详情页面）
+    await database.runAsync(
+        `INSERT INTO daily_practice_log (date, char_id, is_correct, practiced_at)
+         VALUES (?, ?, ?, ?)`,
+        [today, charId, isCorrect ? 1 : 0, now]
     );
 }
 
@@ -397,4 +414,60 @@ export async function getMasteredCount(): Promise<number> {
         'SELECT COUNT(*) as count FROM character_progress WHERE difficulty < 0.3'
     );
     return result?.count ?? 0;
+}
+
+// ============ 数据重置 ============
+
+// 重置所有学习数据
+export async function resetAllData(): Promise<void> {
+    const database = await getDatabase();
+    await database.execAsync(`
+        DELETE FROM character_progress;
+        DELETE FROM level_completion;
+        DELETE FROM daily_stats;
+        DELETE FROM daily_practice_log;
+    `);
+}
+
+// ============ 每日练习详情 ============
+
+// 获取有练习记录的日期列表（按日期倒序）
+export async function getPracticeDates(limit: number = 30): Promise<string[]> {
+    const database = await getDatabase();
+    const results = await database.getAllAsync<{ date: string }>(
+        `SELECT DISTINCT date FROM daily_practice_log
+         ORDER BY date DESC
+         LIMIT ?`,
+        [limit]
+    );
+    return results.map(r => r.date);
+}
+
+// 获取某天的练习详情（每个字的练习情况）
+export async function getDailyPracticeDetails(date: string): Promise<Array<{
+    charId: string;
+    correctCount: number;
+    wrongCount: number;
+}>> {
+    const database = await getDatabase();
+    const results = await database.getAllAsync<{
+        char_id: string;
+        correct_count: number;
+        wrong_count: number;
+    }>(`
+        SELECT
+            char_id,
+            SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct_count,
+            SUM(CASE WHEN is_correct = 0 THEN 1 ELSE 0 END) as wrong_count
+        FROM daily_practice_log
+        WHERE date = ?
+        GROUP BY char_id
+        ORDER BY MIN(practiced_at) ASC
+    `, [date]);
+
+    return results.map(r => ({
+        charId: r.char_id,
+        correctCount: r.correct_count,
+        wrongCount: r.wrong_count,
+    }));
 }

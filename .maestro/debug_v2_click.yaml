@@ -1,0 +1,64 @@
+appId: host.exp.Exponent
+---
+# 调试 V2 按钮点击
+
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 10000
+
+- takeScreenshot: "debug_01_start"
+
+# 如果在 Expo Go，点击汉字小勇士
+- runFlow:
+    when:
+      visible: "汉字小勇士"
+    commands:
+      - tapOn:
+          text: "汉字小勇士"
+          index: 0
+
+- extendedWaitUntil:
+    visible: "开始冒险|闯关|V2"
+    timeout: 15000
+
+- takeScreenshot: "debug_02_app"
+
+# 如果在首页，导航到关卡
+- runFlow:
+    when:
+      visible: "开始冒险"
+    commands:
+      - tapOn: "开始冒险"
+      - extendedWaitUntil:
+          visible: "选择课本"
+          timeout: 10000
+      - tapOn:
+          point: "20%,40%"
+      - extendedWaitUntil:
+          visible: "闯关"
+          timeout: 10000
+
+- takeScreenshot: "debug_03_levels"
+
+# 等待 2 秒确保页面稳定
+- swipe:
+    direction: LEFT
+    duration: 50
+
+# 点击第一个 V2 按钮
+- tapOn:
+    text: "V2"
+    index: 0
+    retryTapIfNoChange: false
+
+- takeScreenshot: "debug_04_after_v2_click"
+
+# 等待 5 秒让页面加载
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 5000
+
+- takeScreenshot: "debug_05_final"

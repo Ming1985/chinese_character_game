@@ -3,20 +3,20 @@ import { Character, Textbook, Level, Semester } from '../types';
 // 导入各年级数据
 import { GRADE1_UP_CHARACTERS } from './grade1-up';
 import { GRADE1_DOWN_CHARACTERS } from './grade1-down';
-import { GRADE2_UP_CHARACTERS, GRADE2_UP_LESSON_NAMES } from './grade2-up';
+import { GRADE2_UP_CHARACTERS, GRADE2_UP_LESSONS } from './grade2-up';
 import { GRADE2_DOWN_CHARACTERS } from './grade2-down';
 
 // 所有课本
 export const TEXTBOOKS: Textbook[] = [
     { id: 'g1-up', grade: 1, semester: 'up', name: '一年级上册', totalLessons: 14 },
     { id: 'g1-down', grade: 1, semester: 'down', name: '一年级下册', totalLessons: 8 },
-    { id: 'g2-up', grade: 2, semester: 'up', name: '二年级上册', totalLessons: 29 },
+    { id: 'g2-up', grade: 2, semester: 'up', name: '二年级上册', totalLessons: 35 },
     { id: 'g2-down', grade: 2, semester: 'down', name: '二年级下册', totalLessons: 8 },
 ];
 
 // 关卡名称映射（按课本）
 const LESSON_NAMES: Record<string, Record<number, string>> = {
-    'g2-up': GRADE2_UP_LESSON_NAMES,
+    'g2-up': GRADE2_UP_LESSONS,
 };
 
 // 所有汉字数据

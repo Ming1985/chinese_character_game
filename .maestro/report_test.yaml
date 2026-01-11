@@ -1,0 +1,67 @@
+appId: host.exp.Exponent
+---
+# 学习报告页面测试
+
+- launchApp
+
+- extendedWaitUntil:
+    visible: "汉字小勇士"
+    timeout: 10000
+
+# 进入学习报告页面
+- tapOn:
+    id: "learning-report-btn"
+
+- extendedWaitUntil:
+    visible: "学习报告"
+    timeout: 5000
+
+# === UI 可见性验证 ===
+- assertVisible: "学习报告"
+- assertVisible: "← 返回"
+
+- takeScreenshot: "report_01_page_loaded"
+
+# 等待数据加载
+- extendedWaitUntil:
+    timeout: 3000
+
+# 验证统计卡片（如有数据）
+- runFlow:
+    when:
+      visible: "累计练习"
+    commands:
+      - assertVisible: "累计练习"
+      - assertVisible: "正确率"
+      - assertVisible: "已掌握"
+      - assertVisible: "待复习"
+      - takeScreenshot: "report_02_stats_cards"
+
+# 验证本周练习图表
+- runFlow:
+    when:
+      visible: "本周练习"
+    commands:
+      - assertVisible: "本周练习"
+      - takeScreenshot: "report_03_weekly_chart"
+
+# 验证易错字区域
+- runFlow:
+    when:
+      visible: "易错字"
+    commands:
+      - assertVisible: "易错字"
+      - takeScreenshot: "report_04_difficult_chars"
+
+# 验证空状态（如无数据）
+- runFlow:
+    when:
+      visible: "暂无学习数据"
+    commands:
+      - takeScreenshot: "report_05_empty_state"
+
+# === 返回首页 ===
+- tapOn: "← 返回"
+- assertVisible: "汉字小勇士"
+
+- takeScreenshot: "report_06_test_complete"
