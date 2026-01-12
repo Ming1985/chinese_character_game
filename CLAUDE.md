@@ -137,3 +137,8 @@ const BAIDU_SECRET_KEY = '...';
 ```bash
 npm config set registry https://registry.npmmirror.com
 ```
+
+## 开发偏好
+
+- 游戏功能设计应简单易开发，避免过度复杂化
+- iPad 等大屏设备需要响应式调整 UI 元素尺寸（使用 useWindowDimensions）

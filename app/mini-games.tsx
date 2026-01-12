@@ -29,7 +29,7 @@ const GAMES: GameCard[] = [
         icon: '📝',
         color: '#3498db',
         route: '/word-builder-game',
-        available: false,
+        available: true,
     },
     {
         id: 'pinyin-match',

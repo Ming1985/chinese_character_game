@@ -29,6 +29,10 @@ export default function LevelsScreen() {
         router.push({ pathname: '/characters', params: { levelId } });
     };
 
+    const handleStartLearning = (levelId: string) => {
+        router.push({ pathname: '/learning', params: { levelId } });
+    };
+
     if (!textbook) {
         return (
             <SafeAreaView style={styles.container}>
@@ -87,6 +91,12 @@ export default function LevelsScreen() {
                                     onPress={() => handleViewCharacters(level.id)}
                                 >
                                     <Text style={styles.previewButtonText}>预览</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.learnButton}
+                                    onPress={() => handleStartLearning(level.id)}
+                                >
+                                    <Text style={styles.learnButtonText}>学习</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.playButton}
@@ -189,13 +199,25 @@ const styles = StyleSheet.create({
     previewButton: {
         backgroundColor: '#0f3460',
         paddingVertical: 8,
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
         borderRadius: 8,
-        marginRight: 8,
+        marginRight: 6,
     },
     previewButtonText: {
         color: '#aaa',
         fontSize: 14,
+    },
+    learnButton: {
+        backgroundColor: '#9b59b6',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginRight: 6,
+    },
+    learnButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
     },
     playButton: {
         backgroundColor: '#27ae60',

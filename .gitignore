@@ -45,3 +45,4 @@ yarn-error.*
 
 # logs
 expo.log
+.maestro/screenshots/

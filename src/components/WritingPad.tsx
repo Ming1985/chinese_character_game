@@ -107,6 +107,8 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
         },
         onPanResponderMove: (e: GestureResponderEvent) => {
             if (disabled || isRecognizing) return;
+            // 确保有起始点才添加线段
+            if (!currentPathRef.current) return;
             const { locationX, locationY } = e.nativeEvent;
             const newPath = `${currentPathRef.current} L ${locationX.toFixed(1)} ${locationY.toFixed(1)}`;
             currentPathRef.current = newPath;
@@ -166,6 +168,9 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
         },
     };
 
+    // 验证路径是否有效（必须以 M 开头）
+    const isValidPath = (path: string) => path && path.trim().startsWith('M');
+
     return (
         <View style={styles.container}>
             <View style={sizeStyles.gridContainer}>
@@ -178,7 +183,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                     >
                         <Svg width={PAD_SIZE} height={PAD_SIZE}>
                             <Rect x={0} y={0} width={PAD_SIZE} height={PAD_SIZE} fill="#FFFFFF" />
-                            {paths.map((pathStr, index) => (
+                            {paths.filter(isValidPath).map((pathStr, index) => (
                                 <SvgPath
                                     key={index}
                                     d={pathStr}
@@ -189,7 +194,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                                     fill="none"
                                 />
                             ))}
-                            {currentPath ? (
+                            {isValidPath(currentPath) && (
                                 <SvgPath
                                     d={currentPath}
                                     stroke="#000000"
@@ -198,7 +203,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                                     strokeLinejoin="round"
                                     fill="none"
                                 />
-                            ) : null}
+                            )}
                         </Svg>
                     </View>
 
@@ -216,7 +221,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                                 stroke="#222" strokeWidth={1} strokeDasharray="8,4" />
 
                             {/* 显示笔画 */}
-                            {paths.map((pathStr, index) => (
+                            {paths.filter(isValidPath).map((pathStr, index) => (
                                 <SvgPath
                                     key={index}
                                     d={pathStr}
@@ -227,7 +232,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                                     fill="none"
                                 />
                             ))}
-                            {currentPath ? (
+                            {isValidPath(currentPath) && (
                                 <SvgPath
                                     d={currentPath}
                                     stroke="#f39c12"
@@ -236,7 +241,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
                                     strokeLinejoin="round"
                                     fill="none"
                                 />
-                            ) : null}
+                            )}
                         </Svg>
                     </View>
                 </View>

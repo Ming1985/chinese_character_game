@@ -5,12 +5,25 @@ import { useState, useEffect, useRef } from 'react';
 import { Character } from '../src/types';
 import { getCharactersByLevelId } from '../src/data';
 import WritingPad from '../src/components/WritingPad';
-import { saveAnswerResult, markLevelCompleted } from '../src/lib/database';
+import { saveAnswerResult, markLevelCompleted, getLevelProgress } from '../src/lib/database';
 import { getAudioService } from '../src/lib/audioService';
 import { SoundEffect } from '../src/lib/audioTypes';
+
 const MONSTER_MOVE_DURATION = 15000; // 15秒移动到角色位置
 const MONSTER_HP = 2;
 const HERO_MAX_HP = 3;
+
+// 怪物图片映射
+const MONSTER_SPRITES = [
+    require('../assets/images/monster_slime.png'),
+    require('../assets/images/monster_mushroom.png'),
+    require('../assets/images/monster_ghost.png'),
+    require('../assets/images/monster_bat.png'),
+    require('../assets/images/monster_pumpkin.png'),
+    require('../assets/images/monster_cactus.png'),
+    require('../assets/images/monster_fire.png'),
+    require('../assets/images/monster_ice.png'),
+] as const;
 
 interface MonsterState {
     character: Character;
@@ -170,22 +183,39 @@ export default function BattleV2Screen() {
 
     // 初始化关卡数据
     useEffect(() => {
-        console.log('🎮 battle-v2: levelId =', levelId);
-        const chars = getCharactersByLevelId(levelId);
-        console.log('🎮 battle-v2: chars.length =', chars.length);
-        if (chars.length === 0) {
-            console.log('🎮 battle-v2: No characters found, going back');
-            router.back();
-            return;
-        }
-        setCharacters(chars);
-        const monsterList = chars.map(c => ({
-            character: c,
-            hp: MONSTER_HP,
-            defeated: false,
-            spriteIndex: Math.floor(Math.random() * 8), // 随机选择 0-7
-        }));
-        setMonsters(monsterList);
+        const initLevel = async () => {
+            console.log('🎮 battle-v2: levelId =', levelId);
+            const chars = getCharactersByLevelId(levelId);
+            console.log('🎮 battle-v2: chars.length =', chars.length);
+            if (chars.length === 0) {
+                console.log('🎮 battle-v2: No characters found, going back');
+                router.back();
+                return;
+            }
+
+            // 获取进度信息并按净错误数排序
+            const charIds = chars.map(c => c.id);
+            const progressMap = await getLevelProgress(charIds);
+
+            // 按净错误数（错误-正确）降序排列
+            const sortedChars = [...chars].sort((a, b) => {
+                const progressA = progressMap.get(a.id);
+                const progressB = progressMap.get(b.id);
+                const netErrorA = progressA ? (progressA.wrongCount - progressA.correctCount) : 0;
+                const netErrorB = progressB ? (progressB.wrongCount - progressB.correctCount) : 0;
+                return netErrorB - netErrorA;
+            });
+
+            setCharacters(sortedChars);
+            const monsterList = sortedChars.map(c => ({
+                character: c,
+                hp: MONSTER_HP,
+                defeated: false,
+                spriteIndex: Math.floor(Math.random() * 8),
+            }));
+            setMonsters(monsterList);
+        };
+        initLevel();
     }, [levelId]);
 
     // 当前怪物和字符（需要在 useEffect 之前声明）
@@ -370,8 +400,6 @@ export default function BattleV2Screen() {
         );
     }
 
-
-
     // 动态计算尺寸
     const spriteSize = isLandscape ? 80 : 120;
     const heroSize = isLandscape ? 100 : 150;
@@ -445,18 +473,7 @@ export default function BattleV2Screen() {
                         ]}
                     >
                         <Image
-                            source={
-                                [
-                                    require('../assets/images/monster_slime.png'),
-                                    require('../assets/images/monster_mushroom.png'),
-                                    require('../assets/images/monster_ghost.png'),
-                                    require('../assets/images/monster_bat.png'),
-                                    require('../assets/images/monster_pumpkin.png'),
-                                    require('../assets/images/monster_cactus.png'),
-                                    require('../assets/images/monster_fire.png'),
-                                    require('../assets/images/monster_ice.png'),
-                                ][currentMonster.spriteIndex]
-                            }
+                            source={MONSTER_SPRITES[currentMonster.spriteIndex]}
                             style={[styles.monsterImage, { width: spriteSize, height: spriteSize }]}
                             resizeMode="contain"
                         />
@@ -608,13 +625,21 @@ export default function BattleV2Screen() {
                 {gameOver && (
                     <View style={styles.resultContainer}>
                         <Text style={styles.resultTitle}>💔 挑战失败</Text>
-                        <Text style={styles.resultText}>再试一次吧！</Text>
-                        <TouchableOpacity
-                            style={styles.nextButton}
-                            onPress={() => router.back()}
-                        >
-                            <Text style={styles.nextButtonText}>返回关卡</Text>
-                        </TouchableOpacity>
+                        <Text style={styles.resultText}>先去学习一下吧！</Text>
+                        <View style={styles.resultButtons}>
+                            <TouchableOpacity
+                                style={[styles.nextButton, styles.learnButton]}
+                                onPress={() => router.replace({ pathname: '/learning', params: { levelId } })}
+                            >
+                                <Text style={styles.nextButtonText}>去学习</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.nextButton, styles.backButton]}
+                                onPress={() => router.back()}
+                            >
+                                <Text style={styles.nextButtonText}>返回</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )}
             </View>
@@ -844,6 +869,16 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: '600',
+    },
+    resultButtons: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    learnButton: {
+        backgroundColor: '#9b59b6',
+    },
+    backButton: {
+        backgroundColor: '#34495e',
     },
     loadingText: {
         color: '#fff',

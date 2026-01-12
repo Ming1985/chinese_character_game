@@ -53,6 +53,21 @@ async function initDatabase(database: SQLite.SQLiteDatabase): Promise<void> {
         );
 
         CREATE INDEX IF NOT EXISTS idx_practice_log_date ON daily_practice_log(date);
+
+        CREATE TABLE IF NOT EXISTS learning_progress (
+            level_id TEXT PRIMARY KEY,
+            character_index INTEGER DEFAULT 0,
+            stage TEXT DEFAULT 'tracing',
+            correct_count INTEGER DEFAULT 0,
+            earned_meat INTEGER DEFAULT 0,
+            last_updated INTEGER
+        );
+
+        CREATE TABLE IF NOT EXISTS user_rewards (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            total_meat INTEGER DEFAULT 0,
+            last_earned_at INTEGER
+        );
     `);
 }
 
@@ -470,4 +485,99 @@ export async function getDailyPracticeDetails(date: string): Promise<Array<{
         correctCount: r.correct_count,
         wrongCount: r.wrong_count,
     }));
+}
+
+// ============ 学习模式 ============
+
+export interface LearningProgress {
+    levelId: string;
+    characterIndex: number;
+    stage: 'tracing' | 'dictation';
+    correctCount: number;
+    earnedMeat: number;
+    lastUpdated: number;
+}
+
+// 获取学习进度
+export async function getLearningProgress(levelId: string): Promise<LearningProgress | null> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{
+        level_id: string;
+        character_index: number;
+        stage: string;
+        correct_count: number;
+        earned_meat: number;
+        last_updated: number;
+    }>('SELECT * FROM learning_progress WHERE level_id = ?', [levelId]);
+
+    if (!result) return null;
+
+    return {
+        levelId: result.level_id,
+        characterIndex: result.character_index,
+        stage: result.stage as 'tracing' | 'dictation',
+        correctCount: result.correct_count,
+        earnedMeat: result.earned_meat,
+        lastUpdated: result.last_updated,
+    };
+}
+
+// 保存学习进度
+export async function saveLearningProgress(progress: LearningProgress): Promise<void> {
+    const database = await getDatabase();
+    await database.runAsync(
+        `INSERT INTO learning_progress (level_id, character_index, stage, correct_count, earned_meat, last_updated)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(level_id) DO UPDATE SET
+            character_index = ?,
+            stage = ?,
+            correct_count = ?,
+            earned_meat = ?,
+            last_updated = ?`,
+        [
+            progress.levelId,
+            progress.characterIndex,
+            progress.stage,
+            progress.correctCount,
+            progress.earnedMeat,
+            progress.lastUpdated,
+            progress.characterIndex,
+            progress.stage,
+            progress.correctCount,
+            progress.earnedMeat,
+            progress.lastUpdated,
+        ]
+    );
+}
+
+// 删除学习进度（完成学习后清除）
+export async function clearLearningProgress(levelId: string): Promise<void> {
+    const database = await getDatabase();
+    await database.runAsync('DELETE FROM learning_progress WHERE level_id = ?', [levelId]);
+}
+
+// 获取用户肉腿总数
+export async function getTotalMeat(): Promise<number> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{ total_meat: number }>(
+        'SELECT total_meat FROM user_rewards WHERE id = 1'
+    );
+    return result?.total_meat ?? 0;
+}
+
+// 增加肉腿
+export async function addMeat(amount: number): Promise<number> {
+    const database = await getDatabase();
+    const now = Date.now();
+
+    await database.runAsync(
+        `INSERT INTO user_rewards (id, total_meat, last_earned_at)
+         VALUES (1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+            total_meat = total_meat + ?,
+            last_earned_at = ?`,
+        [amount, now, amount, now]
+    );
+
+    return await getTotalMeat();
 }
