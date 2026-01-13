@@ -43,6 +43,7 @@ export default function RootLayout() {
                 <Stack.Screen name="similar-char-game" />
                 <Stack.Screen name="word-builder-game" />
                 <Stack.Screen name="learning" />
+                <Stack.Screen name="shop" />
                 <Stack.Screen name="settings" />
             </Stack>
         </View>

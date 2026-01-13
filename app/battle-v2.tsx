@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Character } from '../src/types';
 import { getCharactersByLevelId } from '../src/data';
 import WritingPad from '../src/components/WritingPad';
-import { saveAnswerResult, markLevelCompleted, getLevelProgress } from '../src/lib/database';
+import { saveAnswerResult, markLevelCompleted, getLevelProgress, addMeat } from '../src/lib/database';
 import { getAudioService } from '../src/lib/audioService';
 import { SoundEffect } from '../src/lib/audioTypes';
 
@@ -45,6 +45,7 @@ export default function BattleV2Screen() {
     const [gameOver, setGameOver] = useState(false);
     const [victory, setVictory] = useState(false);
     const [showingAnswer, setShowingAnswer] = useState(false); // 显示答案状态
+    const [earnedMeat, setEarnedMeat] = useState(0); // 本局获得的肉
 
     // 怪物位置动画 (0=右侧刷怪点, 1=左侧角色位置)
     const monsterProgress = useRef(new Animated.Value(0)).current;
@@ -325,10 +326,10 @@ export default function BattleV2Screen() {
     const handleWritingComplete = async (recognizedChar: string, isCorrect: boolean) => {
         if (!isMoving || currentMonsterIndex >= monsters.length || isAttacking) return;
 
-        const currentMonster = monsters[currentMonsterIndex];
-        const targetChar = currentMonster.character.char;
+        const monster = monsters[currentMonsterIndex];
+        const targetChar = monster.character.char;
 
-        await saveAnswerResult(currentMonster.character.id, isCorrect, Date.now());
+        await saveAnswerResult(monster.character.id, isCorrect, Date.now());
 
         if (isCorrect && recognizedChar === targetChar) {
             // 写对了，攻击怪物
@@ -357,7 +358,7 @@ export default function BattleV2Screen() {
 
             // 播放火球动画，完成后处理伤害
             playFireballAnimation(heroX, heroY, monsterCurrentX, monsterCurrentY, () => {
-                const newHp = currentMonster.hp - 1;
+                const newHp = monster.hp - 1;
                 const updatedMonsters = [...monsters];
                 updatedMonsters[currentMonsterIndex].hp = newHp;
                 setMonsters(updatedMonsters);
@@ -371,11 +372,17 @@ export default function BattleV2Screen() {
 
                     // 检查是否所有怪物都死了
                     if (currentMonsterIndex === monsters.length - 1) {
+                        // 最后一只怪物（Boss），奖励3肉
+                        addMeat(3).catch(console.error);
+                        setEarnedMeat(prev => prev + 3);
                         setTimeout(() => {
                             setVictory(true);
                             markLevelCompleted(levelId, 3);
                         }, 1000);
                     } else {
+                        // 普通怪物，奖励1肉
+                        addMeat(1).catch(console.error);
+                        setEarnedMeat(prev => prev + 1);
                         // 下一只怪物
                         setTimeout(() => {
                             setCurrentMonsterIndex(currentMonsterIndex + 1);
@@ -612,6 +619,9 @@ export default function BattleV2Screen() {
                     <View style={styles.resultContainer}>
                         <Text style={styles.resultTitle}>🎉 恭喜过关！</Text>
                         <Text style={styles.resultText}>击败了 {monsters.length} 只怪物</Text>
+                        <View style={styles.meatEarned}>
+                            <Text style={styles.meatEarnedText}>🍖 +{earnedMeat}</Text>
+                        </View>
                         <TouchableOpacity
                             style={styles.nextButton}
                             onPress={() => router.back()}
@@ -857,7 +867,19 @@ const styles = StyleSheet.create({
     resultText: {
         fontSize: 18,
         color: '#aaa',
+        marginBottom: 16,
+    },
+    meatEarned: {
+        backgroundColor: 'rgba(243, 156, 18, 0.2)',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
         marginBottom: 24,
+    },
+    meatEarnedText: {
+        fontSize: 24,
+        color: '#f39c12',
+        fontWeight: 'bold',
     },
     nextButton: {
         backgroundColor: '#27ae60',

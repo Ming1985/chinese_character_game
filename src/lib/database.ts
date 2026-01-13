@@ -68,6 +68,12 @@ async function initDatabase(database: SQLite.SQLiteDatabase): Promise<void> {
             total_meat INTEGER DEFAULT 0,
             last_earned_at INTEGER
         );
+
+        CREATE TABLE IF NOT EXISTS user_inventory (
+            item_id TEXT PRIMARY KEY,
+            quantity INTEGER DEFAULT 1,
+            purchased_at INTEGER
+        );
     `);
 }
 
@@ -580,4 +586,157 @@ export async function addMeat(amount: number): Promise<number> {
     );
 
     return await getTotalMeat();
+}
+
+// 设置肉腿数量（用于测试或重置）
+export async function setMeat(amount: number): Promise<number> {
+    const database = await getDatabase();
+    const now = Date.now();
+
+    await database.runAsync(
+        `INSERT INTO user_rewards (id, total_meat, last_earned_at)
+         VALUES (1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+            total_meat = ?,
+            last_earned_at = ?`,
+        [amount, now, amount, now]
+    );
+
+    return await getTotalMeat();
+}
+
+// 扣除肉（购买时使用）
+export async function deductMeat(amount: number): Promise<boolean> {
+    const database = await getDatabase();
+    const current = await getTotalMeat();
+
+    if (current < amount) {
+        return false; // 余额不足
+    }
+
+    await database.runAsync(
+        `UPDATE user_rewards SET total_meat = total_meat - ? WHERE id = 1`,
+        [amount]
+    );
+
+    return true;
+}
+
+// ============ 商店背包 ============
+
+export interface InventoryItem {
+    itemId: string;
+    quantity: number;
+    purchasedAt: number;
+}
+
+// 获取用户背包
+export async function getUserInventory(): Promise<InventoryItem[]> {
+    const database = await getDatabase();
+    const results = await database.getAllAsync<{
+        item_id: string;
+        quantity: number;
+        purchased_at: number;
+    }>('SELECT * FROM user_inventory');
+
+    return results.map(r => ({
+        itemId: r.item_id,
+        quantity: r.quantity,
+        purchasedAt: r.purchased_at,
+    }));
+}
+
+// 检查是否拥有某商品
+export async function hasItem(itemId: string): Promise<boolean> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{ quantity: number }>(
+        'SELECT quantity FROM user_inventory WHERE item_id = ?',
+        [itemId]
+    );
+    return (result?.quantity ?? 0) > 0;
+}
+
+// 获取商品数量
+export async function getItemQuantity(itemId: string): Promise<number> {
+    const database = await getDatabase();
+    const result = await database.getFirstAsync<{ quantity: number }>(
+        'SELECT quantity FROM user_inventory WHERE item_id = ?',
+        [itemId]
+    );
+    return result?.quantity ?? 0;
+}
+
+// 购买商品
+export async function purchaseItem(itemId: string, price: number, isConsumable: boolean): Promise<boolean> {
+    const database = await getDatabase();
+
+    // 检查余额
+    const current = await getTotalMeat();
+    if (current < price) {
+        return false;
+    }
+
+    // 检查是否已拥有（技能类不可重复购买）
+    if (!isConsumable) {
+        const owned = await hasItem(itemId);
+        if (owned) {
+            return false;
+        }
+    }
+
+    const now = Date.now();
+
+    // 扣除肉
+    await database.runAsync(
+        `UPDATE user_rewards SET total_meat = total_meat - ? WHERE id = 1`,
+        [price]
+    );
+
+    // 添加到背包
+    if (isConsumable) {
+        // 消耗品：数量累加
+        await database.runAsync(
+            `INSERT INTO user_inventory (item_id, quantity, purchased_at)
+             VALUES (?, 1, ?)
+             ON CONFLICT(item_id) DO UPDATE SET
+                quantity = quantity + 1,
+                purchased_at = ?`,
+            [itemId, now, now]
+        );
+    } else {
+        // 技能类：只能购买一次
+        await database.runAsync(
+            `INSERT INTO user_inventory (item_id, quantity, purchased_at)
+             VALUES (?, 1, ?)`,
+            [itemId, now]
+        );
+    }
+
+    return true;
+}
+
+// 使用消耗品（数量减1）
+export async function useConsumable(itemId: string): Promise<boolean> {
+    const database = await getDatabase();
+    const quantity = await getItemQuantity(itemId);
+
+    if (quantity <= 0) {
+        return false;
+    }
+
+    if (quantity === 1) {
+        // 最后一个，删除记录
+        await database.runAsync(
+            'DELETE FROM user_inventory WHERE item_id = ?',
+            [itemId]
+        );
+    } else {
+        // 数量减1
+        await database.runAsync(
+            'UPDATE user_inventory SET quantity = quantity - 1 WHERE item_id = ?',
+            [itemId]
+        );
+    }
+
+    return true;
 }

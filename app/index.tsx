@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getTodayPracticeCount } from '../src/lib/database';
 
@@ -78,6 +78,15 @@ export default function HomeScreen() {
                     testID="learning-report-btn"
                 >
                     <Text style={styles.menuButtonText}>学习报告</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.menuButton, styles.menuButtonShop, { maxWidth: buttonMaxWidth }]}
+                    onPress={() => router.push('/shop')}
+                    accessibilityLabel="商店"
+                    testID="shop-btn"
+                >
+                    <Text style={styles.menuButtonText}>商店</Text>
                 </TouchableOpacity>
             </View>
 
@@ -164,6 +173,9 @@ const styles = StyleSheet.create({
     },
     menuButtonGame: {
         backgroundColor: '#9b59b6',
+    },
+    menuButtonShop: {
+        backgroundColor: '#f39c12',
     },
     menuButtonTertiary: {
         backgroundColor: 'transparent',
