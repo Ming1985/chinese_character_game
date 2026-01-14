@@ -45,6 +45,7 @@ export default function RootLayout() {
                 <Stack.Screen name="learning" />
                 <Stack.Screen name="shop" />
                 <Stack.Screen name="settings" />
+                <Stack.Screen name="game-test" />
             </Stack>
         </View>
     );

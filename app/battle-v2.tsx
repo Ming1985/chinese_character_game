@@ -8,6 +8,7 @@ import WritingPad from '../src/components/WritingPad';
 import { saveAnswerResult, markLevelCompleted, getLevelProgress, addMeat } from '../src/lib/database';
 import { getAudioService } from '../src/lib/audioService';
 import { SoundEffect } from '../src/lib/audioTypes';
+// Lottie 暂不使用，改用 Animated 实现特效
 
 const MONSTER_MOVE_DURATION = 15000; // 15秒移动到角色位置
 const MONSTER_HP = 2;
@@ -57,6 +58,18 @@ export default function BattleV2Screen() {
     const fireballX = useRef(new Animated.Value(0)).current;
     const fireballY = useRef(new Animated.Value(0)).current;
     const fireballOpacity = useRef(new Animated.Value(0)).current;
+
+    // 爆炸效果（Animated 实现）
+    const [showExplosion, setShowExplosion] = useState(false);
+    const [explosionPosition, setExplosionPosition] = useState({ x: 0, y: 0 });
+    const explosionScale = useRef(new Animated.Value(0)).current;
+    const explosionOpacity = useRef(new Animated.Value(1)).current;
+
+    // 肉奖励飘字效果
+    const [showMeatReward, setShowMeatReward] = useState(false);
+    const [meatRewardAmount, setMeatRewardAmount] = useState(1);
+    const meatRewardY = useRef(new Animated.Value(0)).current;
+    const meatRewardOpacity = useRef(new Animated.Value(1)).current;
 
     // 暂停状态
     const [isPaused, setIsPaused] = useState(false);
@@ -319,7 +332,54 @@ export default function BattleV2Screen() {
             // 隐藏火球
             fireballOpacity.setValue(0);
             setIsAttacking(false);
-            onComplete();
+
+            // 显示爆炸效果（Animated 实现）
+            setExplosionPosition({ x: targetX, y: targetY });
+            explosionScale.setValue(0);
+            explosionOpacity.setValue(1);
+            setShowExplosion(true);
+
+            // 爆炸动画：快速扩大 + 淡出
+            Animated.parallel([
+                Animated.spring(explosionScale, {
+                    toValue: 1,
+                    friction: 4,
+                    tension: 100,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(explosionOpacity, {
+                    toValue: 0,
+                    duration: 400,
+                    delay: 200,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setShowExplosion(false);
+                onComplete();
+            });
+        });
+    };
+
+    // 播放肉奖励飘字动画
+    const playMeatRewardAnimation = (amount: number) => {
+        setMeatRewardAmount(amount);
+        meatRewardY.setValue(0);
+        meatRewardOpacity.setValue(1);
+        setShowMeatReward(true);
+
+        Animated.parallel([
+            Animated.timing(meatRewardY, {
+                toValue: -80,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(meatRewardOpacity, {
+                toValue: 0,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setShowMeatReward(false);
         });
     };
 
@@ -375,6 +435,7 @@ export default function BattleV2Screen() {
                         // 最后一只怪物（Boss），奖励3肉
                         addMeat(3).catch(console.error);
                         setEarnedMeat(prev => prev + 3);
+                        playMeatRewardAnimation(3);
                         setTimeout(() => {
                             setVictory(true);
                             markLevelCompleted(levelId, 3);
@@ -383,6 +444,7 @@ export default function BattleV2Screen() {
                         // 普通怪物，奖励1肉
                         addMeat(1).catch(console.error);
                         setEarnedMeat(prev => prev + 1);
+                        playMeatRewardAnimation(1);
                         // 下一只怪物
                         setTimeout(() => {
                             setCurrentMonsterIndex(currentMonsterIndex + 1);
@@ -515,6 +577,40 @@ export default function BattleV2Screen() {
                         ]}
                         resizeMode="contain"
                     />
+                )}
+
+                {/* 爆炸效果（Animated 实现） */}
+                {showExplosion && (
+                    <Animated.View
+                        style={[
+                            styles.explosion,
+                            {
+                                left: explosionPosition.x - 50,
+                                top: explosionPosition.y - 50,
+                                transform: [{ scale: explosionScale }],
+                                opacity: explosionOpacity,
+                            },
+                        ]}
+                    >
+                        <View style={styles.explosionOuter} />
+                        <View style={styles.explosionInner} />
+                        <View style={styles.explosionCore} />
+                    </Animated.View>
+                )}
+
+                {/* 肉奖励飘字效果 */}
+                {showMeatReward && (
+                    <Animated.View
+                        style={[
+                            styles.meatReward,
+                            {
+                                transform: [{ translateY: meatRewardY }],
+                                opacity: meatRewardOpacity,
+                            },
+                        ]}
+                    >
+                        <Text style={styles.meatRewardText}>+{meatRewardAmount} 🍖</Text>
+                    </Animated.View>
                 )}
 
                 {/* 暂停按钮 */}
@@ -712,6 +808,51 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         zIndex: 100,
+    },
+    explosion: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        zIndex: 150,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    explosionOuter: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(255, 100, 0, 0.4)',
+    },
+    explosionInner: {
+        position: 'absolute',
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'rgba(255, 150, 0, 0.6)',
+    },
+    explosionCore: {
+        position: 'absolute',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 220, 100, 0.9)',
+    },
+    meatReward: {
+        position: 'absolute',
+        top: '30%',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        zIndex: 200,
+    },
+    meatRewardText: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: '#f39c12',
+        textShadowColor: '#000',
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 4,
     },
     pauseButton: {
         position: 'absolute',

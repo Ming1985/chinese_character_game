@@ -93,6 +93,13 @@ export default function HomeScreen() {
             {/* 底部统计 */}
             <View style={styles.footer}>
                 <Text style={styles.footerText}>今日已练习: {todayCount} 字</Text>
+                {/* 临时测试入口 */}
+                <TouchableOpacity
+                    style={styles.testButton}
+                    onPress={() => router.push('/game-test')}
+                >
+                    <Text style={styles.testButtonText}>动画测试</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -196,5 +203,16 @@ const styles = StyleSheet.create({
     footerText: {
         color: '#555',
         fontSize: 13,
+    },
+    testButton: {
+        marginTop: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: '#333',
+        borderRadius: 12,
+    },
+    testButtonText: {
+        color: '#888',
+        fontSize: 11,
     },
 });
