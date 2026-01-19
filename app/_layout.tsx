@@ -2,14 +2,17 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Platform } from 'react-native';
 import { useEffect } from 'react';
-import { initOCRService } from '../src/lib/ocrService';
-import { OCR_CONFIG } from '../src/config/ocr';
+import { initOCRService, initLocalOCRService, setOCRProvider } from '../src/lib/ocrService';
+import { OCR_CONFIG, LOCAL_OCR_CONFIG, OCR_PROVIDER } from '../src/config/ocr';
 import { initAudioService, getAudioService } from '../src/lib/audioService';
 
 export default function RootLayout() {
     useEffect(() => {
         // 初始化 OCR 服务
         initOCRService(OCR_CONFIG);
+        initLocalOCRService(LOCAL_OCR_CONFIG);
+        setOCRProvider(OCR_PROVIDER);
+        console.log(`OCR 服务: ${OCR_PROVIDER}`);
 
         // 初始化音频服务
         initAudioService();

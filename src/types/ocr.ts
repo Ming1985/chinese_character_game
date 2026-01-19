@@ -26,3 +26,11 @@ export interface OCRConfig {
     apiKey: string;
     secretKey: string;
 }
+
+// 本地 OCR 配置
+export interface LocalOCRConfig {
+    serverUrl: string;  // 如 http://localhost:5001
+}
+
+// OCR 服务类型
+export type OCRProvider = 'baidu' | 'local';

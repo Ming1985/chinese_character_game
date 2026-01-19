@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Text, PanResponder, GestureResponde
 import Svg, { Path as SvgPath, Line, Rect } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
 import { StrokePoint } from '../types';
-import { getOCRService } from '../lib/ocrService';
+import { recognizeHandwriting } from '../lib/ocrService';
 
 export interface WritingPadRef {
     clear: () => void;
@@ -65,8 +65,7 @@ const WritingPad = forwardRef<WritingPadRef, WritingPadProps>(({ targetChar, onC
             });
 
             // 调用 OCR
-            const ocrService = getOCRService();
-            const result = await ocrService.recognizeHandwriting(base64Image);
+            const result = await recognizeHandwriting(base64Image);
 
             if (result.success) {
                 const isCorrect = result.character === targetChar;

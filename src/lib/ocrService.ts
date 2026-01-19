@@ -1,4 +1,4 @@
-import { OCRResult, BaiduOCRResponse, OCRConfig } from '../types/ocr';
+import { OCRResult, BaiduOCRResponse, OCRConfig, LocalOCRConfig, OCRProvider } from '../types/ocr';
 
 const BAIDU_TOKEN_URL = 'https://aip.baidubce.com/oauth/2.0/token';
 const BAIDU_HANDWRITING_URL = 'https://aip.baidubce.com/rest/2.0/ocr/v1/handwriting';
@@ -114,3 +114,103 @@ export function getOCRService(): OCRService {
 }
 
 export { OCRService };
+
+// ============ 本地 RapidOCR 服务 ============
+
+class LocalOCRService {
+    private config: LocalOCRConfig;
+
+    constructor(config: LocalOCRConfig) {
+        this.config = config;
+    }
+
+    async recognizeHandwriting(base64Image: string): Promise<OCRResult> {
+        try {
+            const response = await fetch(`${this.config.serverUrl}/ocr`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: base64Image }),
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                return {
+                    success: false,
+                    character: '',
+                    confidence: 0,
+                    error: data.error || 'UNKNOWN_ERROR',
+                };
+            }
+
+            return {
+                success: true,
+                character: data.character,
+                confidence: data.confidence,
+                candidates: data.candidates,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                character: '',
+                confidence: 0,
+                error: error instanceof Error ? error.message : 'NETWORK_ERROR',
+            };
+        }
+    }
+
+    async checkHealth(): Promise<boolean> {
+        try {
+            const response = await fetch(`${this.config.serverUrl}/health`);
+            const data = await response.json();
+            return data.status === 'ok';
+        } catch {
+            return false;
+        }
+    }
+}
+
+// 本地 OCR 单例
+let localOCRServiceInstance: LocalOCRService | null = null;
+
+export function initLocalOCRService(config: LocalOCRConfig): void {
+    localOCRServiceInstance = new LocalOCRService(config);
+}
+
+export function getLocalOCRService(): LocalOCRService {
+    if (!localOCRServiceInstance) {
+        throw new Error('Local OCR Service not initialized. Call initLocalOCRService first.');
+    }
+    return localOCRServiceInstance;
+}
+
+export { LocalOCRService };
+
+// ============ 统一 OCR 接口 ============
+
+let currentProvider: OCRProvider = 'baidu';
+
+export function setOCRProvider(provider: OCRProvider): void {
+    currentProvider = provider;
+}
+
+export function getOCRProvider(): OCRProvider {
+    return currentProvider;
+}
+
+export async function recognizeHandwriting(base64Image: string): Promise<OCRResult> {
+    if (currentProvider === 'local' && localOCRServiceInstance) {
+        return localOCRServiceInstance.recognizeHandwriting(base64Image);
+    }
+    if (ocrServiceInstance) {
+        return ocrServiceInstance.recognizeHandwriting(base64Image);
+    }
+    return {
+        success: false,
+        character: '',
+        confidence: 0,
+        error: 'No OCR service initialized',
+    };
+}
