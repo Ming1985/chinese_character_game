@@ -1,8 +1,9 @@
 # Phase 2: DragonBones 渲染器
 
 **类型**: infrastructure
-**状态**: pending
-**依赖**: Phase 1 (GameCanvas)
+**状态**: blocked
+**依赖**: Phase 1 (GameCanvas), Phase 3 (测试资产)
+**阻塞原因**: 需要 Phase 3 的美术资产才能完成测试
 
 ## 目标
 
@@ -13,25 +14,25 @@
 ### US-006: 解析 DragonBones 数据格式
 **文件**: `src/game/dragonbones/Parser.ts`, `src/game/dragonbones/types.ts`
 
-- [ ] 创建 `src/game/dragonbones/Parser.ts`
-- [ ] 解析 `_ske.json` 骨骼数据（骨骼树、动画关键帧）
-- [ ] 解析 `_tex.json` 纹理图集元数据
-- [ ] 加载对应的 `_tex.png` 纹理图片
-- [ ] 定义完整的 TypeScript 类型 (`src/game/dragonbones/types.ts`)
-- [ ] 处理格式错误的异常情况
-- [ ] TypeScript 类型检查通过
+- [x] 创建 `src/game/dragonbones/Parser.ts`
+- [x] 解析 `_ske.json` 骨骼数据（骨骼树、动画关键帧）
+- [x] 解析 `_tex.json` 纹理图集元数据
+- [x] 加载对应的 `_tex.png` 纹理图片
+- [x] 定义完整的 TypeScript 类型 (`src/game/dragonbones/types.ts`)
+- [x] 处理格式错误的异常情况
+- [x] TypeScript 类型检查通过
 
 ---
 
 ### US-007: 实现骨骼变换计算
 **文件**: `src/game/dragonbones/Skeleton.ts`
 
-- [ ] 创建 `src/game/dragonbones/Skeleton.ts`
-- [ ] 实现骨骼树结构和父子变换链
-- [ ] 实现关键帧线性插值
-- [ ] 实现贝塞尔曲线插值（用于平滑动画）
-- [ ] 支持动画播放控制（play, pause, stop, setTime）
-- [ ] TypeScript 类型检查通过
+- [x] 创建 `src/game/dragonbones/Skeleton.ts`
+- [x] 实现骨骼树结构和父子变换链
+- [x] 实现关键帧线性插值
+- [x] 实现贝塞尔曲线插值（用于平滑动画）
+- [x] 支持动画播放控制（play, pause, stop, setTime）
+- [x] TypeScript 类型检查通过
 
 ---
 
